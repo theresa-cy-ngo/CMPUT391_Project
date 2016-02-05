@@ -1,0 +1,19 @@
+{
+  "name": "c391-project1-jwoo-tcngo",
+  "version": "1.0.0",
+  "description": "project for cmput 391 ualberta",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwoo12/CMPUT391_W16.git"
+  },
+  "author": "tcngo, jwoo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jwoo12/CMPUT391_W16/issues"
+  },
+  "homepage": "https://github.com/jwoo12/CMPUT391_W16#readme"
+}
