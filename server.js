@@ -6,6 +6,7 @@ var express = require('express'),
 
 //Set port number. This will be changed to the port assigned to us
 app.set('port', 8080);
+app.set('ip', "127.0.0.1");
 
 
 //Add public folder for static files
