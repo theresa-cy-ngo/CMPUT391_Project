@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/jwoo12/CMPUT391_W16/issues"
   },
-  "homepage": "https://github.com/jwoo12/CMPUT391_W16#readme"
+  "homepage": "https://github.com/jwoo12/CMPUT391_W16#readme",
+  "dependencies": {
+    "express": "^4.13.4"
+  }
 }
