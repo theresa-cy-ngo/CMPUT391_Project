@@ -23,7 +23,9 @@ oracledb.getConnection(
   {
     user          : "jwoo",
     password      : "", //Put password here (I'll message you my password :P)
-    connectString : "CRS" //16040
+    connectString : ""
+    //if WFH then localhost:1525/CRS
+    //if lab machine then CRS
   },
   function(err, connection)
   {
