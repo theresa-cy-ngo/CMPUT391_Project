@@ -4,7 +4,10 @@ var express = require('express'),
     app = express(),
     http = require('http'),
     oracledb = require('oracledb'),
-    dbConfig = require('./dbconfig.js');
+    dbConfig = require('./dbconfig.js'),
+    bodyParser = require("body-parser");
+
+app.use(bodyParser.json());
 
 //Set port number.
 app.set('port', 8080);
@@ -25,26 +28,26 @@ http.createServer(app).listen(app.get('port') ,app.get('ip'), function () {
 
 
 //Get Oracle connection (test function)
-oracledb.getConnection(dbConfig, function(err, connection) {
-    if (err) {
-      console.error(err.message);
-      return;
-    }
-    connection.execute(
-      "SELECT * " +
-      "FROM COURSE ",
-      function(err, result)
-      {
-        if (err) {
-          console.error(err.message);
-          doRelease(connection);
-          return;
-        }
-        console.log(result.metaData);
-        console.log(result.rows);
-        doRelease(connection);
-      });
-  });
+// oracledb.getConnection(dbConfig, function(err, connection) {
+//     if (err) {
+//       console.error(err.message);
+//       return;
+//     }
+//     connection.execute(
+//       "SELECT * " +
+//       "FROM COURSE ",
+//       function(err, result)
+//       {
+//         if (err) {
+//           console.error(err.message);
+//           doRelease(connection);
+//           return;
+//         }
+//         console.log(result.metaData);
+//         console.log(result.rows);
+//         doRelease(connection);
+//       });
+//   });
 
 //Disconnect from Oracle
 function doRelease(connection)
