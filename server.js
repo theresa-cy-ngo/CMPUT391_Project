@@ -5,9 +5,29 @@ var express = require('express'),
     http = require('http'),
     oracledb = require('oracledb'),
     dbConfig = require('./dbconfig.js'),
-    bodyParser = require("body-parser");
+    bodyParser = require('body-parser'),
+    ejs = require('ejs');
 
+app.set('view engine', ejs);
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(function (req, res, next) {
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', '*');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
+});
 
 //Set port number.
 app.set('port', 8080);
@@ -18,7 +38,7 @@ app.use(express.static(__dirname + '/public'));
 
 //Set first page
 app.get('/', function(request, response) {
-  response.render('view/index');
+  response.render(__dirname + '/public/index');
 });
 
 //Server
