@@ -1,0 +1,24 @@
+{
+  "name": "c391-project1-jwoo-tcngo",
+  "description": "project for cmput 391 ualberta",
+  "main": "server.js",
+  "moduleType": [],
+  "authors": [
+    "tcngo",
+    "jwoo"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/jwoo12/CMPUT391_W16",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "^1.5.0",
+    "angular-route": "~1.5.0"
+  }
+}

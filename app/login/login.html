@@ -1,0 +1,17 @@
+<div class="loginWrapper" style="text-align:center;" ng-controller="LoginController">
+    <div> <h1> CMPUT 391 App </h1> </div>
+    <div class="username" style="">
+      <div class="form-group">
+        <label for="usernameInput">Username</label>
+        <input class="form-control input-sm" ng-model="usernameInput" id="inputuser" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+
+    <div class="password">
+      <div class="form-group">
+        <label for="passwordInput">Password</label>
+        <input class="form-control input-sm" ng-model="passwordInput" id="inputpass" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+    <button type="button" class="btn btn-default" ng-click="submit()">LOGIN</button>
+</div>

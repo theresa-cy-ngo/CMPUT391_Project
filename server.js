@@ -8,7 +8,9 @@ var express = require('express'),
     bodyParser = require('body-parser'),
     cookieParser = require("cookie-parser"),
     ejs = require('ejs'),
-    util = require('util');
+    util = require('util'),
+    path = require("path"),
+    url = require("url");
 
 
 
@@ -40,11 +42,24 @@ app.set('port', 8080);
 app.set('ip', "127.0.0.1");
 
 //Add public folder for static files
-app.use(express.static(__dirname + '/src'));
+app.use(express.static(__dirname));
 
-//Set first page
-app.get('/', function(request, response) {
-  response.render(__dirname + '/src/index');
+// //Set first page
+// app.get('/', function(request, response) {
+//   response.render(__dirname + '/app/index');
+// });
+
+app.get("*", function (req, res) {
+    var resource = url.parse(req.url).pathname;
+    if(~resource.indexOf("node_modules") || ~resource.indexOf("bower_components")) {
+        res.sendFile(path.join(__dirname));
+    } else {
+        if(resource.slice(-1) !== "/") {
+            res.sendFile(path.join(__dirname + "/app" + resource));
+        } else {
+            res.sendFile(path.join(__dirname + "/app" + resource, "index.html"));
+        }
+    }
 });
 
 //Server
