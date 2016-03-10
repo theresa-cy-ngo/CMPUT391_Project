@@ -44,11 +44,6 @@ app.set('ip', "127.0.0.1");
 //Add public folder for static files
 app.use(express.static(__dirname));
 
-// //Set first page
-// app.get('/', function(request, response) {
-//   response.render(__dirname + '/app/index');
-// });
-
 app.get("*", function (req, res) {
     var resource = url.parse(req.url).pathname;
     if(~resource.indexOf("node_modules") || ~resource.indexOf("bower_components")) {
@@ -71,31 +66,9 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
-
-//Get Oracle connection (test function)
-// oracledb.getConnection(dbConfig, function(err, connection) {
-//     if (err) {
-//       console.error(err.message);
-//       return;
-//     }
-//     connection.execute(
-//       "SELECT * " +
-//       "FROM COURSE ",
-//       function(err, result)
-//       {
-//         if (err) {
-//           console.error(err.message);
-//           doRelease(connection);
-//           return;
-//         }
-//         console.log(result.metaData);
-//         console.log(result.rows);
-//         doRelease(connection);
-//       });
-//   });
-
-
 app.post("/login", function (req, res) {
+    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
+
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
                 connectionError(err, res);
@@ -110,7 +83,7 @@ app.post("/login", function (req, res) {
                     if (err) {
                         executeError(err, res);
                     } else {
-                        console.log(util.inspect(result, {showHidden: false, depth: null}));
+                        // console.log(util.inspect(result, {showHidden: false, depth: null}));
                         if(result.rows.length > 0) {
                             // // Set cookies
                             // res.cookie("user_name", req.body.userName);
@@ -134,6 +107,106 @@ app.post("/login", function (req, res) {
         }
     );
 });
+
+app.route("/register")
+    .get(function (req, res) {
+        /** Use to check if a user name or email is already taken.
+         *  All parameters should be part of the query string.
+         *
+         *  Possible parameters:
+         *       userName
+         *       email
+         */
+
+        console.log(util.inspect(req.body, {showHidden: false, depth: null}));
+
+        var DBQueryString,
+            DBQueryParam,
+            username = req.body.userName,
+            email = req.body.email;
+        console.log(username);
+        console.log(email);
+
+        DBQueryString =
+            "SELECT * " +
+            "FROM persons " +
+            "WHERE persons.user_name = :user_name OR persons.email = :email";
+
+        DBQueryParam = {user_name: username, email: email};
+
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+            connection.execute(DBQueryString,
+                DBQueryParam,
+                function (err, result) {
+                    if (err) {
+                        executeError(err, res);
+                    } else if (result.rows.length) {
+                        res.status(409);
+                        res.send(
+                            {
+                                error: true,
+                                errorCode: 4,
+                                message: "Element already exists",
+                                success: false
+                            }
+                        );
+                    } else {
+                        res.send({success: true});
+                    }
+                    doRelease(connection);
+                }
+            );
+        });
+    })
+
+    .post (function (req, res){
+
+    });
+
+// app.post("/register", function (req, res) {
+//     oracledb.getConnection(dbConfig, function (err, connection) {
+//             if (err) {
+//                 connectionError(err, res);
+//                 return;
+//             }
+//             connection.execute(
+//                 "SELECT * " +
+//                 "FROM users " +
+//                 "WHERE user_name = :user_name AND password = :password",
+//                 {user_name: req.body.userName, password: req.body.password},
+//                 function (err, result) {
+//                     if (err) {
+//                         executeError(err, res);
+//                     } else {
+//                         console.log(util.inspect(result, {showHidden: false, depth: null}));
+//                         if(result.rows.length > 0) {
+//                             // // Set cookies
+//                             // res.cookie("user_name", req.body.userName);
+//                             // res.cookie("login", true);
+//                             res.send({success: true});
+//                         } else {
+//                             res.status(422);
+//                             res.send(
+//                                 {
+//                                     error: true,
+//                                     errorCode: 2,
+//                                     message: "Username or password is incorrect. Please try again.",
+//                                     success: false
+//                                 }
+//                             );
+//                         }
+//                     }
+//                     doRelease(connection);
+//                 }
+//             );
+//         }
+//     );
+// });
 
 //Disconnect from Oracle
 function doRelease(connection)

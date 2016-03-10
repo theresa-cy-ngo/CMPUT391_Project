@@ -1,0 +1,52 @@
+<div class="RegisterWrapper" style="text-align:center;" ng-controller="RegisterController">
+    <div> <h1> REGISTER </h1> </div>
+    <div class="username" style="">
+      <div class="form-group">
+        <label for="usernameInput">Username</label>
+        <input class="form-control input-sm" ng-model="regUser" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+
+    <div class="password">
+      <div class="form-group">
+        <label for="passwordInput">Password</label>
+        <input class="form-control input-sm" ng-model="regPass" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+
+    <div class="fname">
+      <div class="form-group">
+        <label for="fnameInput">First Name</label>
+        <input class="form-control input-sm" ng-model="regName" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+
+    <div class="lname">
+      <div class="form-group">
+        <label for="lnameInput">Last Name</label>
+        <input class="form-control input-sm" ng-model="regLast" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+
+    <div class="addr">
+      <div class="form-group">
+        <label for="addrInput">Address</label>
+        <input class="form-control input-sm" ng-model="regAddr" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+
+    <div class="email">
+      <div class="form-group">
+        <label for="emailInput">Email</label>
+        <input class="form-control input-sm" ng-model="regMail" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+
+    <div class="phone">
+      <div class="form-group">
+        <label for="phoneInput">Phone</label>
+        <input class="form-control input-sm" ng-model="regPhone" type="text" style="margin: 0 auto; width: 50%;">
+      </div>
+    </div>
+    <button type="button" class="btn btn-default" ng-click="registerUsr()" style="display: block; margin: 0 auto; margin-top: 20px;">REGISTER</button>
+</div>
