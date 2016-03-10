@@ -23,7 +23,7 @@ angular.module("myApp.register", ["ngRoute", "myApp.register.registerHandler"])
                   }
               });
           }else{
-            alert("Error1");
+            alert("Username or email is already in use");
           }
         });
 

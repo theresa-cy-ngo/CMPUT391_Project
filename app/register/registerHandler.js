@@ -26,14 +26,7 @@ angular.module("myApp.register.registerHandler", [])
     var $checkpost = $http({
           method: 'GET',
           url: SERVICE_BASE_URL + "register",
-          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-          transformRequest: function(obj) {
-              var str = [];
-              for(var p in obj)
-              str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-              return str.join("&");
-          },
-          data: {userName: username, email: email}
+          params: {userName: username, email: email},
       }).success(function (result) {
           return callback(result);
       }).error(function (result) {

@@ -118,14 +118,10 @@ app.route("/register")
          *       email
          */
 
-        console.log(util.inspect(req.body, {showHidden: false, depth: null}));
-
         var DBQueryString,
             DBQueryParam,
-            username = req.body.userName,
-            email = req.body.email;
-        console.log(username);
-        console.log(email);
+            username = req.query.userName,
+            email = req.query.email;
 
         DBQueryString =
             "SELECT * " +
@@ -133,7 +129,6 @@ app.route("/register")
             "WHERE persons.user_name = :user_name OR persons.email = :email";
 
         DBQueryParam = {user_name: username, email: email};
-
 
         oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
