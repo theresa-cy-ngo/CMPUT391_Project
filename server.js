@@ -108,6 +108,8 @@ app.post("/login", function (req, res) {
     );
 });
 
+
+
 app.route("/register")
     .get(function (req, res) {
         /** Use to check if a user name or email is already taken.
@@ -135,12 +137,14 @@ app.route("/register")
                 connectionError(err, res);
                 return;
             }
-            connection.execute(DBQueryString,
-                DBQueryParam,
+            connection.execute(DBQueryString, DBQueryParam,
                 function (err, result) {
+                    // console.log(util.inspect(result, {showHidden: false, depth: null}));
                     if (err) {
                         executeError(err, res);
                     } else if (result.rows.length) {
+                        //there was a tuple returned with the username and email
+                        //so not unique and must use another combination
                         res.status(409);
                         res.send(
                             {
@@ -151,6 +155,7 @@ app.route("/register")
                             }
                         );
                     } else {
+                        //username and email are unique so able to register
                         res.send({success: true});
                     }
                     doRelease(connection);
@@ -158,55 +163,72 @@ app.route("/register")
             );
         });
     })
-
     .post (function (req, res){
+        var DBQueryString,
+            DBQueryParam,
+            DBQueryTotal,
+            username = req.body.userName;
+            password = req.body.password;
+            fname = req.body.fname;
+            lname = req.body.lname;
+            addr = req.body.addr;
+            email = req.body.email;
+            phone = req.body.phone;
+            date = null;
 
+            // Need to find how to calculate the current datestamp
+            DBQueryStringUsers =
+            "INSERT INTO users " +
+            "(USER_NAME, PASSWORD, DATE_REGISTERED) " +
+            "VALUES (:username, :password, :date); ";
+
+            DBQueryStringPersons =
+            "INSERT INTO persons " +
+            "(USER_NAME, FIRST_NAME, LAST_NAME, ADDRESS, EMAIL, PHONE) " +
+            "VALUES (:username, :first_name, :last_name, :address, :email, :phone); ";
+
+            DBQueryTotal = "BEGIN\n" +DBQueryStringUsers + DBQueryStringPersons + "END;";
+
+            // Need to put the parameters in here
+            DBQueryParam = {username: username,
+                                  password: password,
+                                  date: date,
+                                  first_name: fname,
+                                  last_name: lname,
+                                  address: addr,
+                                  email: email,
+                                  phone: phone
+                                  };
+
+            // console.log(util.inspect(DBQueryParam, {showHidden: false, depth: null}));
+
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+           //Execute both SQL statements
+           connection.execute(DBQueryTotal, DBQueryParam,
+               {autoCommit: true},
+               function (err, result) {
+                   if (err) {
+                       executeError(err, res);
+                   } else {
+                       console.log(util.inspect(result, {showHidden: false, depth: null}));
+                       res.send({success: true});
+                    }
+                    doRelease(connection);
+                }
+            );
+        });
     });
 
-// app.post("/register", function (req, res) {
-//     oracledb.getConnection(dbConfig, function (err, connection) {
-//             if (err) {
-//                 connectionError(err, res);
-//                 return;
-//             }
-//             connection.execute(
-//                 "SELECT * " +
-//                 "FROM users " +
-//                 "WHERE user_name = :user_name AND password = :password",
-//                 {user_name: req.body.userName, password: req.body.password},
-//                 function (err, result) {
-//                     if (err) {
-//                         executeError(err, res);
-//                     } else {
-//                         console.log(util.inspect(result, {showHidden: false, depth: null}));
-//                         if(result.rows.length > 0) {
-//                             // // Set cookies
-//                             // res.cookie("user_name", req.body.userName);
-//                             // res.cookie("login", true);
-//                             res.send({success: true});
-//                         } else {
-//                             res.status(422);
-//                             res.send(
-//                                 {
-//                                     error: true,
-//                                     errorCode: 2,
-//                                     message: "Username or password is incorrect. Please try again.",
-//                                     success: false
-//                                 }
-//                             );
-//                         }
-//                     }
-//                     doRelease(connection);
-//                 }
-//             );
-//         }
-//     );
-// });
+
 
 //Disconnect from Oracle
 function doRelease(connection)
 {
-  console.log("connect release");
   connection.release(
     function(err) {
       if (err) {

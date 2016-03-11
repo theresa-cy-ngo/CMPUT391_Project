@@ -14,7 +14,7 @@ angular.module("myApp.register.registerHandler", [])
                 return str.join("&");
             },
             data: {userName: username, password: password, fname: fname,
-                  lname: lname, addr: addr, email: email, phone: phone}
+                  lname: lname, addr: addr, email: email, phone: phone, date: null}
         }).success(function (result) {
             return callback(result);
         }).error(function (result) {
