@@ -25,22 +25,34 @@ flowFactoryProvider.defaults = {
 //         link: fn_link
 //     }
 // } ])
-.controller("UploadController", function ($scope, uploadHandler) {
+.controller("UploadController", function ($scope, uploadHandler, $q) {
   $scope.imageStrings = [];
   $scope.processFiles = function(files){
-    angular.forEach(files, function(flowFile, i){
-       var fileReader = new FileReader();
-          fileReader.onload = function (event) {
-            var uri = event.target.result;
-              $scope.imageStrings[i] = uri;
-              console.log(uri);
-          };
-          fileReader.readAsDataURL(flowFile.file);
-          fileReader.onloadend = function(){
-            var base64data = fileReader.result;
-          }
+
+    var processFile = function () {
+        var deferred = $q.defer();
+        angular.forEach(files, function(flowFile, i){
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(flowFile.file);
+            fileReader.onload = function (event) {
+                var uri = event.target.result;
+                $scope.imageStrings[i] = uri;
+                deferred.resolve();
+            };
+        });
+        return deferred.promise;
+    };
+
+
+    var promise = processFile();
+    promise.then(function(){
+        //console.log("ASKDFJKASDFJKASJKFJASDKJAKSJF " + $scope.imageStrings[0]);
+        console.log($scope.imageStrings);
+    }, function (err) {
+        console.log("NOPE");
     });
-    console.log($scope.imageStrings);
+
+
   };});
     // $scope.submit = function(files) {
     //   var file_array = [];
