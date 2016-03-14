@@ -135,6 +135,36 @@ app.post("/login", function (req, res) {
     );
 });
 
+app.route("/upload")
+  .get(function (req, res) {
+    var DBQueryString;
+
+        DBQueryString =
+            "SELECT photo_id " +
+            "FROM images " +
+            "WHERE images.photo_id = " +
+            "(SELECT MAX(photo_id) FROM images)";
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+            connection.execute(DBQueryString,
+                function (err, result) {
+                    // console.log(util.inspect(result, {showHidden: false, depth: null}));
+                    if (err) {
+                        executeError(err, res);
+                    } else {
+                        // Should return the max id currently in the table
+                        res.send({success: true});
+                    }
+                    doRelease(connection);
+                }
+            );
+        });
+    });
+
 //Disconnect from Oracle
 function doRelease(connection)
 {
