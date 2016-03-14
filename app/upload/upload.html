@@ -1,12 +1,23 @@
-<div flow-init ng-controller="UploadController">
-  <span class="btn btn-default" flow-btn flow-attrs="{accept:'image/*'}">
+<div flow-init ng-controller="UploadController"
+       flow-name="uploader.flow"
+       flow-files-added="processFiles($files)">
+    <span class="btn btn-default" flow-btn flow-attrs="{accept:'image/*'}">
+      Single Image
+      <input type="file" ng-model="singleUpload" style="visibility: hidden; position:absolute;">
+    </span>
+    <span class="btn btn-default" flow-btn flow-directory flow-attrs="{accept:'image/*'}">
+      Image Folder
+      <input type="file" ng-model="folderUpload" accept="image/*" style="visibility: hidden; position: absolute;">
+    </span>
+
+  <!-- <span class="btn btn-default" flow-btn flow-attrs="{accept:'image/*'}">
     Single Image
     <input type="file" ng-model="singleUpload" style="visibility: hidden; position:absolute;">
   </span>
   <span class="btn btn-default" flow-btn flow-directory flow-attrs="{accept:'image/*'}">
     Image Folder
     <input type="file" ng-model="folderUpload" accept="image/*" style="visibility: hidden; position: absolute;">
-  </span>
+  </span> -->
   <br>
   <p>Please enter the information that applies to the image(s). (optional)</p>
   <br>
