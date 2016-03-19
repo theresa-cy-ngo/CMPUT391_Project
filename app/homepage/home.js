@@ -1,4 +1,4 @@
-angular.module("myApp.home", ["ngRoute"])
+angular.module("myApp.home", ["ngRoute", "LocalStorageModule"])
 
 .config(["$routeProvider", function($routeProvider) {
     $routeProvider.when("/home", {
@@ -7,6 +7,19 @@ angular.module("myApp.home", ["ngRoute"])
     });
 }])
 
-.controller("HomeController", function($scope, $location, loginHandler) {
-    console.log("homecontr");
+.controller("HomeController", function($scope, $location, localStorageService) {
+    var usernameFromStorage,
+        storageKey = "user";
+
+    function getItem(key) {
+        return localStorageService.get(key);
+    };
+
+    if(!getItem(storageKey)){
+        //User has not logged in yet so redirect to login
+        $location.url("/login");
+    }
+
+
+
 });

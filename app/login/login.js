@@ -1,4 +1,4 @@
-angular.module("myApp.login", ["ngRoute", "myApp.login.loginHandler"])
+angular.module("myApp.login", ["ngRoute", "myApp.login.loginHandler", "LocalStorageModule"])
 
 .config(["$routeProvider", function($routeProvider) {
     $routeProvider.when("/login", {
@@ -7,11 +7,12 @@ angular.module("myApp.login", ["ngRoute", "myApp.login.loginHandler"])
     });
 }])
 
-.controller("LoginController", function($scope, $location, loginHandler) {
+.controller("LoginController", function($scope, $location, loginHandler, localStorageService) {
     $scope.submit = function() {
     	loginHandler.login($scope.usernameInput, $scope.passwordInput, function(result) {
         if(result.success){
-          $location.url("/home");
+            localStorageService.set("user", $scope.usernameInput);
+            $location.url("/home");
         }else{
           alert("No account data");
         }
