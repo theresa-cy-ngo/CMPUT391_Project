@@ -20,6 +20,18 @@ angular.module("myApp.home", ["ngRoute", "LocalStorageModule"])
         $location.url("/login");
     }
 
+    $scope.groups = function() {
+    	$location.url("/groups");
+    };
+    $scope.display = function() {
+    	$location.url("/display");
+    };
+    $scope.search = function() {
+    	$location.url("/search");
+    };
+    $scope.analysis = function() {
+    	$location.url("/analysis");
+    };
 
 
 });

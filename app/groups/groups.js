@@ -1,13 +1,13 @@
-angular.module("myApp.analysis", ["ngRoute", "LocalStorageModule"])
+angular.module("myApp.groups", ["ngRoute", "LocalStorageModule"])
 
 .config(["$routeProvider", function($routeProvider) {
-    $routeProvider.when("/analysis", {
-        templateUrl: "analysis/analysis.html",
-        controller: "analysisController"
+    $routeProvider.when("/groups", {
+        templateUrl: "groups/groups.html",
+        controller: "groupsController"
     });
 }])
 
-.controller("analysisController", function($scope, $location, localStorageService) {
+.controller("groupsController", function($scope, $location, localStorageService) {
     var usernameFromStorage,
         storageKey = "user";
 

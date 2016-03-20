@@ -4,6 +4,10 @@ angular.module("myApp", [
     "LocalStorageModule",
     "myApp.login",
     "myApp.register",
+    "myApp.display",
+    "myApp.groups",
+    "myApp.analysis",
+    "myApp.search",
     "myApp.home"
 ]).
 config(["$routeProvider", function($routeProvider) {
