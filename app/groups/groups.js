@@ -1,4 +1,4 @@
-angular.module("myApp.groups", ["ngRoute", "LocalStorageModule"])
+angular.module("myApp.groups", ["ngRoute", "LocalStorageModule", "myApp.groups.groupsHandler"])
 
 .config(["$routeProvider", function($routeProvider) {
     $routeProvider.when("/groups", {
@@ -7,7 +7,7 @@ angular.module("myApp.groups", ["ngRoute", "LocalStorageModule"])
     });
 }])
 
-.controller("groupsController", function($scope, $location, localStorageService) {
+.controller("groupsController", function($scope, $location, localStorageService, groupsHandler) {
     var usernameFromStorage,
         storageKey = "user";
 
@@ -19,6 +19,22 @@ angular.module("myApp.groups", ["ngRoute", "LocalStorageModule"])
         //User has not logged in yet so redirect to login
         $location.url("/login");
     }
+
+    $scope.groups = [{"name": "test"}];
+
+    $scope.getSelected = function() {
+        $location.url("/displaygroups");
+    };
+
+    $scope.addGroup = function () {
+        if($scope.regGroupName){
+            //need to add to db
+            $scope.groups.push({"name": $scope.regGroupName});
+        }else{
+            alert("Enter a group name");
+        }
+
+    };
 
 
 

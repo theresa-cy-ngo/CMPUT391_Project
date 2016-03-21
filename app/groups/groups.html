@@ -13,9 +13,41 @@
     <!-- Latest compiled JavaScript -->
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <script src="bower_components/angular/angular.js"></script>
+
+    <style>
+        td:hover{
+            background-color: #99ccff;
+        }
+
+    </style>
 </head>
 <body>
     <h1 style="text-align: center;">Groups</h1>
+
+    <div class="addGroup" style="margin-left: 20px;">
+        <div class="groupname" style="">
+          <div class="form-group">
+            <label for="groupnameInput">Group Name</label>
+            <input class="form-control input-sm" ng-model="regGroupName" type="text" style="width: 25%;">
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" style="margin-bottom:100px;" ng-click="addGroup()">Add a group</button>
+    </div>
+    <table class="table" style="margin-left: 20px;">
+        <thead>
+            <tr>
+                <th> Group Name </th>
+            </tr>
+        </thread>
+        <tbody>
+            <tr ng-repeat="group in groups" ng-click="getSelected()">
+        		<td>{{group.name}}
+        		</td>
+        	</tr>
+        </tbody>
+
+    </table>
+
 
 
 </body>

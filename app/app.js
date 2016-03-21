@@ -6,6 +6,7 @@ angular.module("myApp", [
     "myApp.register",
     "myApp.display",
     "myApp.groups",
+    "myApp.displayGroups",
     "myApp.analysis",
     "myApp.search",
     "myApp.home"
