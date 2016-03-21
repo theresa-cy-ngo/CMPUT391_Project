@@ -28,7 +28,20 @@ angular.module("myApp.groups.groupsHandler", [])
         function(result) { // optional
             return callback(result);
         });
+    };
 
+    this.getGroups = function (username, callback) {
+        $http({
+            url: SERVICE_BASE_URL + "groups",
+            method: "GET",
+            params: {userName: username}
+        })
+        .then(function(result) {
+            return callback(result);
+        },
+        function(result) { // optional
+            return callback(result);
+        });
     };
 
 });

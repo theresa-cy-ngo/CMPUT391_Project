@@ -145,6 +145,33 @@ app.post("/groupid", function(req, res){
 });
 
 app.route("/groups")
+    .get(function(req, res){
+        var DBQueryString =
+            "SELECT * " +
+            "FROM GROUPS " +
+            "WHERE GROUPS.USER_NAME = :userName" ,
+            DBQueryParam = {userName: req.query.userName};
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+           connection.execute(DBQueryString, DBQueryParam,
+               {autoCommit: true},
+               function (err, result) {
+                   if (err) {
+                       executeError(err, res);
+                   } else {
+                    //    console.log(util.inspect(result, {showHidden: false, depth: null}));
+                       res.send({success: true, results: result.rows});
+                    }
+                    doRelease(connection);
+                }
+            );
+        });
+
+    })
     .post(function(req, res){
         var DBQueryString =
             "BEGIN\n " +

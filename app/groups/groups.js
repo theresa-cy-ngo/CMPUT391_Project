@@ -11,6 +11,8 @@ angular.module("myApp.groups", ["ngRoute", "LocalStorageModule", "myApp.groups.g
     var usernameFromStorage,
         storageKey = "user";
 
+    $scope.groups = [];
+
     function getItem(key) {
         return localStorageService.get(key);
     };
@@ -22,7 +24,14 @@ angular.module("myApp.groups", ["ngRoute", "LocalStorageModule", "myApp.groups.g
         usernameFromStorage = getItem(storageKey);
     }
 
-    $scope.groups = [{"name": "test", "id": 123}];
+    groupsHandler.getGroups(usernameFromStorage, function(result){
+        var index = 0;
+
+        for(index; index < result.data.results.length; index++){
+            $scope.groups.push({"name": result.data.results[index][2], "id": result.data.results[index][0]});
+        }
+        // console.log(result);
+    });
 
     $scope.getSelected = function(group) {
         console.log(group);
@@ -37,8 +46,8 @@ angular.module("myApp.groups", ["ngRoute", "LocalStorageModule", "myApp.groups.g
                 if(result.data.success){
                     groupsHandler.addGroup(result.data.lastID + 1, $scope.regGroupName, usernameFromStorage, function(){
                         if(result.data.success){
-                            console.log("added");
-                            // $scope.groups.push({"name": });
+                            // console.log("added");
+                            $scope.groups.push({"name": $scope.regGroupName, "id": result.data.lastID + 1});
                         }else{
                             alert("Error adding group. Please try again.");
                         }
