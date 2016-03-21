@@ -85,9 +85,6 @@ app.post("/login", function (req, res) {
                     } else {
                         // console.log(util.inspect(result, {showHidden: false, depth: null}));
                         if(result.rows.length > 0) {
-                            // // Set cookies
-                            // res.cookie("user_name", req.body.userName);
-                            // res.cookie("login", true);
                             res.send({success: true});
                         } else {
                             res.status(422);
@@ -107,6 +104,86 @@ app.post("/login", function (req, res) {
         }
     );
 });
+
+app.post("/groupid", function(req, res){
+    oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+            connection.execute(
+                "SELECT GROUP_ID " +
+                "FROM groups " +
+                "ORDER BY GROUP_ID desc",
+                function (err, result) {
+                    if (err) {
+                        executeError(err, res);
+                    } else {
+                        // console.log(util.inspect(result, {showHidden: false, depth: null}));
+                        if(result.rows.length > 0) {
+                            // console.log(result.rows[0][0]);
+                            res.send({lastID: result.rows[0][0], success: true});
+                        } else {
+                            res.status(500);
+                            res.send(
+                                {
+                                    error: true,
+                                    errorCode: 2,
+                                    message: "Could not retrieve data",
+                                    success: false
+                                }
+                            );
+                        }
+                    }
+                    doRelease(connection);
+                }
+            );
+        }
+    );
+
+
+});
+
+app.route("/groups")
+    .post(function(req, res){
+        var DBQueryString =
+            "BEGIN\n " +
+            "INSERT INTO GROUPS (GROUP_ID, USER_NAME, GROUP_NAME, DATE_CREATED) " +
+            "VALUES (:groupID, :userName, :groupName, :date_created); " +
+
+            "INSERT INTO GROUP_LISTS (GROUP_ID, FRIEND_ID, DATE_ADDED, NOTICE) " +
+            "VALUES (:groupID, :userName, :date_created, :notice); " +
+
+            "END;",
+            DBQueryParam = {groupID: req.body.groupID,
+                            userName: req.body.userName,
+                            groupName: req.body.groupName,
+                            date_created: null,
+                            notice: null
+                            };
+
+        // console.log(util.inspect(req, {showHidden: false, depth: null}));
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+           connection.execute(DBQueryString, DBQueryParam,
+               {autoCommit: true},
+               function (err, result) {
+                   if (err) {
+                       executeError(err, res);
+                   } else {
+                    //    console.log(util.inspect(result, {showHidden: false, depth: null}));
+                       res.send({success: true});
+                    }
+                    doRelease(connection);
+                }
+            );
+        });
+
+    });
 
 
 

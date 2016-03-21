@@ -15,7 +15,10 @@
     <script src="bower_components/angular/angular.js"></script>
 
     <style>
-        td:hover{
+        .tableHeader{
+            background-color: transparent !important;
+        }
+        tr:hover{
             background-color: #99ccff;
         }
 
@@ -35,13 +38,16 @@
     </div>
     <table class="table" style="margin-left: 20px;">
         <thead>
-            <tr>
+            <tr class="tableHeader">
                 <th> Group Name </th>
+                <th> Group ID </th>
             </tr>
         </thread>
         <tbody>
-            <tr ng-repeat="group in groups" ng-click="getSelected()">
+            <tr ng-repeat="group in groups" ng-click="getSelected(group)">
         		<td>{{group.name}}
+        		</td>
+                <td>{{group.id}}
         		</td>
         	</tr>
         </tbody>
