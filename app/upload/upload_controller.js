@@ -25,29 +25,25 @@ flowFactoryProvider.defaults = {
   // Show the submit button
   $scope.submitButton = true;
 
-  function b64toBlob(b64Data, contentType, sliceSize) {
-  contentType = contentType || '';
-  sliceSize = sliceSize || 512;
+  function dataURItoBlob(dataURI) {
+      // convert base64/URLEncoded data component to raw binary data held in a string
+      var byteString;
+      if (dataURI.split(',')[0].indexOf('base64') >= 0)
+          byteString = atob(dataURI.split(',')[1]);
+      else
+          byteString = unescape(dataURI.split(',')[1]);
 
-  var byteCharacters = atob(b64Data);
-  var byteArrays = [];
+      // separate out the mime component
+      var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
 
-  for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    var slice = byteCharacters.slice(offset, offset + sliceSize);
+      // write the bytes of the string to a typed array
+      var ia = new Uint8Array(byteString.length);
+      for (var i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+      }
 
-    var byteNumbers = new Array(slice.length);
-    for (var i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-
-    var byteArray = new Uint8Array(byteNumbers);
-
-    byteArrays.push(byteArray);
+      return new Blob([ia], {type:mimeString});
   }
-
-  var blob = new Blob(byteArrays, {type: contentType});
-  return blob;
-}
 
   // Reads all of the image files as a blob and adds it to imageStrings
   $scope.processFiles = function(files){
@@ -59,11 +55,11 @@ flowFactoryProvider.defaults = {
 
         angular.forEach(files, function(flowFile, i){
             var fileReader = new FileReader();
-            //fileReader.readAsDataURL(flowFile.file);
+            fileReader.readAsDataURL(flowFile.file);
             fileReader.onload = function (event) {
                 //console.log(flowFile.file);
                 var uri = event.target.result;
-                var blob = b64toBlob(uri, contentType);
+                var blob = dataURItoBlob(uri);
                 imageStrings[i] = blob;
                 // var img = new Image;
                 // img.onload = function(event) {

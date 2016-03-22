@@ -175,7 +175,7 @@ app.route("/upload")
           timing = null,
           description = req.body.desc,
           thumbnail = null,
-          photo = null;
+          photo = req.body.photo;
 
           DBQueryString =
               "INSERT INTO images " +
