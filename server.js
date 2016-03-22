@@ -157,13 +157,64 @@ app.route("/upload")
                         executeError(err, res);
                     } else {
                         // Should return the max id currently in the table
-                        res.send({success: true});
+                        res.send(result);
                     }
                     doRelease(connection);
                 }
             );
         });
-    });
+    })
+    .post(function (req, res) {
+      var DBQueryString,
+          DBQueryParam,
+          photo_id = Number(req.body.new_id),
+          owner_name = req.body.owner_name,
+          permitted = Number(req.body.permitted),
+          subject = req.body.subject,
+          place = req.body.place,
+          timing = null,
+          description = req.body.desc,
+          thumbnail = null,
+          photo = null;
+
+          DBQueryString =
+              "INSERT INTO images " +
+              "(PHOTO_ID, OWNER_NAME, PERMITTED, SUBJECT, PLACE, TIMING, DESCRIPTION, THUMBNAIL, PHOTO) " +
+              "VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, :thumbnail, :photo) ";
+
+          console.log(DBQueryString);
+
+          DBQueryParam = {photo_id: photo_id,
+                          owner_name: owner_name,
+                          permitted: permitted,
+                          subject: subject,
+                          place: place,
+                          timing: timing,
+                          description: description,
+                          thumbnail: thumbnail,
+                          photo: photo
+                          };
+          console.log(DBQueryParam);
+
+          oracledb.getConnection(dbConfig, function (err, connection) {
+              if (err) {
+                  connectionError(err, res);
+                  return;
+              }
+              connection.execute(DBQueryString, DBQueryParam,
+                  function (err, result) {
+                      // console.log(util.inspect(result, {showHidden: false, depth: null}));
+                      if (err) {
+                          executeError(err, res);
+                      } else {
+                          // Should return the max id currently in the table
+                          res.send({success: true});
+                      }
+                      doRelease(connection);
+                  }
+              );
+          });
+      });
 
 //Disconnect from Oracle
 function doRelease(connection)

@@ -66,13 +66,13 @@
     </div>
   </div>
 
-  <div class="well">
+  <!-- <div class="well">
     <a class="btn btn-small btn-success" ng-click="$flow.resume()">Resume all</a>
     <a class="btn btn-small btn-danger" ng-click="$flow.pause()">Pause all</a>
     <a class="btn btn-small btn-info" ng-click="$flow.cancel()">Cancel all</a>
-  </div>
+  </div> -->
 
-  <div ng-repeat="file in $flow.files" class="transfer-box">
+  <!-- <div ng-repeat="file in $flow.files" class="transfer-box">
     {{file.relativePath}}
     <div class="progress progress-striped" ng-class="{active: file.isUploading()}">
       <div class="progress-bar" role="progressbar"
@@ -97,8 +97,8 @@
         Retry
       </a>
     </div>
-  </div>
-  <button type="button" class="btn btn-default" ng-click="submit($flow.files)">Upload</button>
+  </div> -->
+  <button type="button" class="btn btn-default" ng-show="submitButton" ng-click="submit($flow.files)">Upload</button>
   <img flow-img="$flow.files[0]" />
 </div>
 
