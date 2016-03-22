@@ -44,4 +44,46 @@ angular.module("myApp.groups.groupsHandler", [])
         });
     };
 
+    this.getMembers = function (groupID, callback) {
+        $http({
+            url: SERVICE_BASE_URL + "displayGroup",
+            method: "GET",
+            params: {groupID: groupID}
+        })
+        .then(function(result) {
+            return callback(result);
+        },
+        function(result) { // optional
+            return callback(result);
+        });
+    };
+
+    this.addMember = function (groupid, username, callback) {
+        $http({
+            url: SERVICE_BASE_URL + "displayGroup",
+            method: "POST",
+            data: {group_id: groupid, user_name: username, date_added: null, notice: null}
+        })
+        .then(function(result) {
+            return callback(result);
+        },
+        function(result) { // optional
+            return callback(result);
+        });
+    };
+
+    this.deleteMember = function (groupid, username, callback) {
+        $http({
+            url: SERVICE_BASE_URL + "deleteMember",
+            method: "POST",
+            data: {group_id: groupid, user_name: username}
+        })
+        .then(function(result) {
+            return callback(result);
+        },
+        function(result) { // optional
+            return callback(result);
+        });
+    };
+
 });

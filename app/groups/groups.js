@@ -35,7 +35,8 @@ angular.module("myApp.groups", ["ngRoute", "LocalStorageModule", "myApp.groups.g
 
     $scope.getSelected = function(group) {
         console.log(group);
-        $location.url("/displaygroups");
+        groupsHandler.curr_group = group;
+        $location.url("/displayGroup");
     };
 
     $scope.addGroup = function () {

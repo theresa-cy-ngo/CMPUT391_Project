@@ -16,9 +16,11 @@
 
 </head>
 <body>
-    <h1 style="text-align: center;">Groups</h1>
+    <h1 style="text-align: center;">Group Details</h1>
 
     <div class="editMember" style="margin-left: 20px;">
+        <button type="button" class="btn btn-danger" style="float:right; margin-right:30px;"> DELETE GROUP </button>
+
         <div class="addMember" style="">
           <div class="form-group">
             <label for="addMemberInput">Add a member</label>
@@ -38,7 +40,8 @@
     <table class="table" style="margin-left: 20px;">
         <thead>
             <tr>
-                <th>{{group.name}} </th>
+                <th>Members of {{group_name}}</th>
+                <th>Date added </th>
             </tr>
         </thread>
         <tbody>

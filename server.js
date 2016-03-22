@@ -66,6 +66,8 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
+
+
 app.post("/login", function (req, res) {
     console.log(util.inspect(req.body, {showHidden: false, depth: null}));
 
@@ -105,6 +107,34 @@ app.post("/login", function (req, res) {
     );
 });
 
+// app.get("/displayGroup", function(req, res){
+//     var DBQueryString =
+//         "SELECT * " +
+//         "FROM GROUP_LISTS " +
+//         "WHERE GROUP_ID = :groupID" ,
+//         DBQueryParam = {groupID: req.query.groupID};
+//
+//     oracledb.getConnection(dbConfig, function (err, connection) {
+//         if (err) {
+//             connectionError(err, res);
+//             return;
+//         }
+//        connection.execute(DBQueryString, DBQueryParam,
+//            {autoCommit: true},
+//            function (err, result) {
+//                if (err) {
+//                    executeError(err, res);
+//                } else {
+//                 //    console.log(util.inspect(result, {showHidden: false, depth: null}));
+//                    res.send({success: true, results: result.rows});
+//                 }
+//                 doRelease(connection);
+//             }
+//         );
+//     });
+// });
+
+
 app.post("/groupid", function(req, res){
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
@@ -140,8 +170,84 @@ app.post("/groupid", function(req, res){
             );
         }
     );
+});
+
+app.route("/displayGroup")
+    .get(function(req, res){
+        var DBQueryString =
+               "SELECT * " +
+               "FROM GROUP_LISTS " +
+               "WHERE GROUP_ID = :groupID" ,
+               DBQueryParam = {groupID: req.query.groupID};
+
+           oracledb.getConnection(dbConfig, function (err, connection) {
+               if (err) {
+                   connectionError(err, res);
+                   return;
+               }
+              connection.execute(DBQueryString, DBQueryParam,
+                  {autoCommit: true},
+                  function (err, result) {
+                      if (err) {
+                          executeError(err, res);
+                      } else {
+                          res.send({success: true, results: result.rows});
+                       }
+                       doRelease(connection);
+                   }
+               );
+          });
+    })
+    .post(function(req, res){
+        // console.log(util.inspect(req.body, {showHidden: false, depth: null}));
+        var DBQueryString =
+               "INSERT INTO GROUP_LISTS (GROUP_ID, FRIEND_ID, DATE_ADDED, NOTICE)" +
+               "VALUES (:group_id, :user_name, :date_added, :notice)" ,
+               DBQueryParam = {group_id: req.body.group_id, user_name: req.body.user_name, date_added: null, notice: null};
+
+           oracledb.getConnection(dbConfig, function (err, connection) {
+               if (err) {
+                   connectionError(err, res);
+                   return;
+               }
+              connection.execute(DBQueryString, DBQueryParam,
+                  {autoCommit: true},
+                  function (err, result) {
+                      if (err) {
+                          executeError(err, res);
+                      } else {
+                          res.send({success: true, results: result.rows});
+                       }
+                       doRelease(connection);
+                   }
+               );
+          });
+    });
 
 
+app.post("/deleteMember" , function(req, res){
+    var DBQueryString =
+              "DELETE from GROUP_LISTS WHERE group_id = :group_id AND FRIEND_ID = :user_name" ,
+              DBQueryParam = {group_id: req.body.group_id, user_name: req.body.user_name};
+
+          oracledb.getConnection(dbConfig, function (err, connection) {
+              if (err) {
+                  connectionError(err, res);
+                  return;
+              }
+             connection.execute(DBQueryString, DBQueryParam,
+                 {autoCommit: true},
+                 function (err, result) {
+                    //  console.log(util.inspect(result, {showHidden: false, depth: null}));
+                     if (err) {
+                         executeError(err, res);
+                     } else {
+                         res.send({success: true});
+                      }
+                      doRelease(connection);
+                  }
+              );
+         });
 });
 
 app.route("/groups")
