@@ -10,15 +10,18 @@ var express = require('express'),
     ejs = require('ejs'),
     util = require('util'),
     path = require("path"),
-    url = require("url");
+    url = require("url"),
+    atob = require("atob"),
+    stream = require("stream"),
+    Q = require("q");
 
 
 
 
 app.set('view engine', ejs);
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended:true}));
 app.use(function (req, res, next) {
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
@@ -171,6 +174,136 @@ app.post("/groupid", function(req, res){
         }
     );
 });
+
+
+app.post("/upload", function(req, res){
+    var DBQueryString =
+        // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING recoreded_data, thumbnail INTO :lobbv, :lobtn",
+        "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (6, 'test1', null, null, null, null, null, null, EMPTY_BLOB()) RETURNING photo INTO :lobbv",
+        DBQueryParam = {lobbv: {type: oracledb.BLOB, dir: oracledb.BIND_OUT}};
+
+
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(
+           DBQueryString,
+           DBQueryParam,
+           {autoCommit: false},
+
+           function (err, result) {
+                var byteCharacters, buffer, i, lob,
+                    bufferStream, view, arrayBuffer, bytes;
+                var imageDeferred = Q.defer();
+                var thumbnailDeferred = Q.defer();
+
+                if (err || result.rowsAffected != 1 || result.outBinds.lobbv.length != 1) {
+                    executeError(err, res);
+                } else {
+                    // Create an ArrayBuffer from the base64 image
+                    byteCharacters = atob(req.body.data);
+                    bytes = new Uint8Array(byteCharacters.length);
+                    for (i = 0; i < byteCharacters.length; i++) {
+                        bytes[i] = byteCharacters.charCodeAt(i);
+                    }
+                    arrayBuffer = bytes.buffer;
+                    // // Create an ArrayBuffer from the base64 thumbnail
+                    // thumbnailCharacters = atob(req.body.thumbnail);
+                    // thumbnailBytes = new Uint8Array(thumbnailCharacters.length);
+                    // for (i = 0; i < thumbnailCharacters.length; i++) {
+                    //     thumbnailBytes[i] = thumbnailCharacters.charCodeAt(i);
+                    // }
+                    // thumbnailArrayBuffer = thumbnailBytes.buffer;
+
+                    // Create a Node.js Buffers from the ArrayBuffers
+                    buffer = new Buffer(arrayBuffer.byteLength);
+                    view = new Uint8Array(arrayBuffer);
+                    for (i = 0; i < buffer.length; i++) {
+                        buffer[i] = view[i];
+                    }
+                    // thumbnailBuffer = new Buffer(thumbnailArrayBuffer.byteLength);
+                    // view = new Uint8Array(thumbnailArrayBuffer);
+                    // for (i = 0; i < thumbnailBuffer.length; i++) {
+                    //     thumbnailBuffer[i] = view[i];
+                    // }
+
+                    // Put the buffer into a stream so that it can be piped to oracle blob
+                    bufferStream = new stream.PassThrough();
+                    bufferStream.end(buffer);
+                    // thumbnailStream = new stream.PassThrough();
+                    // thumbnailStream.end(thumbnailBuffer);
+
+                    // When the buffer finishes writing to the lob, resolve the deferred
+                    bufferStream.on("end", function () {
+                        imageDeferred.resolve();
+                    });
+                    // thumbnailStream.on("end", function () {
+                    //     thumbnailDeferred.resolve();
+                    // });
+                    // If there is an error then handle it
+                    bufferStream.on("error", function (err) {
+                        executeError(err, res);
+                        imageDeferred.reject();
+                    });
+                    // thumbnailStream.on("error", function (err) {
+                    //     executeError(err, res);
+                    //     thumbnailDeferred.reject();
+                    // });
+
+                    // Q.allSettled([imageDeferred.promise, thumbnailDeferred.promise]).then(function () {
+                    Q.allSettled([imageDeferred.promise]).then(function () {
+
+                        connection.commit(function (err) {
+                            if (err) {
+                                executeError(err, res);
+                            } else {
+                                res.send({success: true});
+                            }
+                        });
+
+                    });
+
+                    lob = result.outBinds.lobbv[0];
+                    // thumbnaillob = result.outBinds.lobtn[0];
+
+                    // If there is an error then handle it
+                    lob.on("error", function (err) {
+                        executeError(err, res);
+                        imageDeferred.reject();
+                    });
+                    // thumbnaillob.on("error", function (err) {
+                    //     executeError(err, res);
+                    //     thumbnailDeferred.reject();
+                    // });
+
+                    lob.on('finish', function() {
+                        console.log("lob.on 'finish' event");
+                        connection.commit( function(err) {
+                            if (err)
+                              console.error(err.message);
+                            else
+                              console.log("Image uploaded successfully.");
+                                connection.release(function(err) {
+                                  if (err) console.error(err.message);
+                                });
+                          });
+                      });
+
+                    // Put the images into the blob
+                    bufferStream.pipe(lob);
+                    // thumbnailStream.pipe(thumbnaillob);
+                }
+            }
+        );
+
+   });
+
+
+});
+
+
 
 app.route("/displayGroup")
     .get(function(req, res){

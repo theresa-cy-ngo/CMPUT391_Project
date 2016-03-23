@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" ng-controller="uploadController">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Cmput391</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+
+    <style>
+        .tableHeader{
+            background-color: transparent !important;
+        }
+        tr:hover{
+            background-color: #99ccff;
+        }
+
+    </style>
+</head>
+<body>
+    <input type="file" file-model="myFile"/>
+    <button ng-click="uploadFile()">upload me</button>
+
+</body>
+</html>

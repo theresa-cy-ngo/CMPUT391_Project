@@ -3,6 +3,7 @@ angular.module("myApp", [
     "ngRoute",
     "LocalStorageModule",
     "myApp.login",
+    "myApp.upload",
     "myApp.register",
     "myApp.display",
     "myApp.groups",
