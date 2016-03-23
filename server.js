@@ -177,10 +177,12 @@ app.route("/upload")
           thumbnail = null,
           photo = req.body.photo;
 
+          console.log(photo)
+
           DBQueryString =
               "INSERT INTO images " +
               "(PHOTO_ID, OWNER_NAME, PERMITTED, SUBJECT, PLACE, TIMING, DESCRIPTION, THUMBNAIL, PHOTO) " +
-              "VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, :thumbnail, :photo) ";
+              "VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, :thumbnail, utl_encode.utl_encode.base64_encode(:photo)) ";
 
           console.log(DBQueryString);
 
@@ -202,12 +204,15 @@ app.route("/upload")
                   return;
               }
               connection.execute(DBQueryString, DBQueryParam,
+
                   function (err, result) {
                       // console.log(util.inspect(result, {showHidden: false, depth: null}));
                       if (err) {
+                          console.log("error");
                           executeError(err, res);
                       } else {
                           // Should return the max id currently in the table
+                          console.log("success");
                           res.send({success: true});
                       }
                       doRelease(connection);

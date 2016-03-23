@@ -48,24 +48,22 @@ angular.module("myApp.upload.uploadHandler", [])
 
     // Uploads images to the database
     var uploadImages = function (new_id, owner, permitted, subject, place, when, desc, photo, callback) {
-        var $uploadpost = $http({
-              method: 'POST',
-              url: SERVICE_BASE_URL + "upload",
-              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-              transformRequest: function(obj) {
-                  var str = [];
-                  for(var p in obj)
-                  str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-                  return str.join("&");
-              },
-              data: {new_id: new_id, owner_name: owner, permitted: permitted, subject: subject,
-                      place: place, when: when, desc: desc,
-                      photo: photo}
-          }).success(function (result) {
-              return callback(result);
-          }).error(function (result) {
-              return callback(result);
-          });
+      console.log(photo);
+      $http({
+         url: SERVICE_BASE_URL + "upload",
+         method: "POST",
+         data: {new_id: new_id, owner_name: owner, permitted: permitted, subject: subject,
+                 place: place, when: when, desc: desc,
+                 photo: photo}
+      })
+      .then(function(result) {
+         console.log(result);
+         return callback(result);
+      },
+      function(result) { // optional
+         //console.log(result);
+         return callback(result);
+      });
     };
 
 });
