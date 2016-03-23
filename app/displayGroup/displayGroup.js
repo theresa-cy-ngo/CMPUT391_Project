@@ -77,6 +77,17 @@ angular.module("myApp.displayGroups", ["ngRoute", "LocalStorageModule", "myApp.g
         }
     };
 
+    $scope.deleteGroup = function() {
+      groupsHandler.deleteGroup(selected_group.id, function(result){
+        if(result.data.success){
+          // Need to redirect to the main group page
+          alert("Deleted group.");
+          $location.url("/groups");
+        } else {
+          alert("Error deleting group.");
+        }
+      })
+    };
 
 
 });

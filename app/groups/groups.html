@@ -21,6 +21,9 @@
         tr:hover{
             background-color: #99ccff;
         }
+        .memberTable {
+            background-color: transparent !important;
+        }
 
     </style>
 </head>
@@ -36,6 +39,11 @@
         </div>
         <button type="button" class="btn btn-primary" style="margin-bottom:100px;" ng-click="addGroup()">Add a group</button>
     </div>
+
+    <div class="header" style="margin-left: 20px;">
+    <h3>Owned Groups</h3>
+    </div>
+
     <table class="table" style="margin-left: 20px;">
         <thead>
             <tr class="tableHeader">
@@ -51,7 +59,27 @@
         		</td>
         	</tr>
         </tbody>
+    </table>
 
+    <div class="header" style="margin-left: 20px; padding-top:10px;">
+    <h3>Memberships</h3>
+    </div>
+
+    <table class="table" style="margin-left: 20px;">
+        <thead>
+            <tr class="tableHeader">
+                <th> Group Name </th>
+                <th> Group ID </th>
+            </tr>
+        </thread>
+        <tbody>
+            <tr class="memberTable" ng-repeat="membership in memberships">
+            <td>{{membership.name}}
+            </td>
+                <td>{{membership.id}}
+            </td>
+          </tr>
+        </tbody>
     </table>
 
 

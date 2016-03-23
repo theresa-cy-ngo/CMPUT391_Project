@@ -44,6 +44,20 @@ angular.module("myApp.groups.groupsHandler", [])
         });
     };
 
+    this.getMemberships = function (username, callback) {
+        $http({
+            url: SERVICE_BASE_URL + "memberships",
+            method: "POST",
+            params: {userName: username}
+        })
+        .then(function(result) {
+            return callback(result);
+        },
+        function(result) {
+            return callback(result);
+        });
+    };
+
     this.getMembers = function (groupID, callback) {
         $http({
             url: SERVICE_BASE_URL + "displayGroup",
@@ -82,6 +96,20 @@ angular.module("myApp.groups.groupsHandler", [])
             return callback(result);
         },
         function(result) { // optional
+            return callback(result);
+        });
+    };
+
+    this.deleteGroup = function (groupid, callback) {
+        $http({
+            url: SERVICE_BASE_URL + "deleteGroup",
+            method: "POST",
+            data: {group_id: groupid}
+        })
+        .then(function(result) {
+            return callback(result);
+        },
+        function(result) {
             return callback(result);
         });
     };

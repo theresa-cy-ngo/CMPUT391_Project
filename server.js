@@ -250,6 +250,63 @@ app.post("/deleteMember" , function(req, res){
          });
 });
 
+app.post("/deleteGroup" , function(req, res){
+    var DBQueryStringList =
+        "DELETE from GROUP_LISTS "+
+        "WHERE group_id = :group_id; ";
+
+    var DBQueryStringGroup =
+        "DELETE from GROUPS " +
+        "WHERE group_id = :group_id; ";
+
+    var DBQueryParam = {group_id: req.body.group_id};
+
+    DBQueryTotal = "BEGIN\n" +DBQueryStringList + DBQueryStringGroup + "END;";
+
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryTotal, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
+app.post("/memberships", function(req, res){
+    var DBQueryString =
+        "SELECT l.group_id, g.group_name " +
+        "FROM GROUP_LISTS l, GROUPS g " +
+        "WHERE l.FRIEND_ID = :userName AND l.GROUP_ID = g.GROUP_ID" ,
+        DBQueryParam = {userName: req.query.userName};
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
 app.route("/groups")
     .get(function(req, res){
         var DBQueryString =
