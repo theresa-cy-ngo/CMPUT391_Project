@@ -251,6 +251,11 @@ app.post("/deleteMember" , function(req, res){
 });
 
 app.post("/deleteGroup" , function(req, res){
+    var DBQueryUpdate =
+        "UPDATE images " +
+        "SET permitted = 2" +
+        "WHERE permitted = :group_id; "
+
     var DBQueryStringList =
         "DELETE from GROUP_LISTS "+
         "WHERE group_id = :group_id; ";
@@ -261,7 +266,7 @@ app.post("/deleteGroup" , function(req, res){
 
     var DBQueryParam = {group_id: req.body.group_id};
 
-    DBQueryTotal = "BEGIN\n" +DBQueryStringList + DBQueryStringGroup + "END;";
+    DBQueryTotal = "BEGIN\n" + DBQueryUpdate + DBQueryStringList + DBQueryStringGroup + "END;";
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -488,7 +493,59 @@ app.route("/register")
         });
     });
 
+// Retrieves pictures that the user uploaded onto the database
+app.post("/getMyPictures", function(req, res){
+    var DBQueryString =
+        "SELECT * " +
+        "FROM images " +
+        "WHERE images.owner_name = :userName" ,
+        DBQueryParam = {userName: req.query.userName};
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
 
+// Retrieves pictures that others uploaded onto the database
+app.post("/getGroupPictures", function(req, res){
+    var DBQueryString =
+        "SELECT * " +
+        "FROM images " +
+        "WHERE images.permitted IN " +
+        "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
+        "OR images.permitted = 1",
+        DBQueryParam = {userName: req.query.userName};
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
 
 //Disconnect from Oracle
 function doRelease(connection)

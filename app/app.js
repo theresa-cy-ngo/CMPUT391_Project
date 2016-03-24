@@ -2,6 +2,7 @@
 angular.module("myApp", [
     "ngRoute",
     "LocalStorageModule",
+    "jkuri.gallery",
     "myApp.login",
     "myApp.register",
     "myApp.display",
