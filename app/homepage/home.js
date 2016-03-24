@@ -32,6 +32,9 @@ angular.module("myApp.home", ["ngRoute", "LocalStorageModule"])
     $scope.analysis = function() {
     	$location.url("/analysis");
     };
+    $scope.upload = function () {
+      $location.url("/upload");
+    };
 
 
 });
