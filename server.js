@@ -175,7 +175,7 @@ app.post("/groupid", function(req, res){
 app.route("/displayGroup")
     .get(function(req, res){
         var DBQueryString =
-               "SELECT * " +
+               "SELECT friend_id, date_added " +
                "FROM GROUP_LISTS " +
                "WHERE GROUP_ID = :groupID" ,
                DBQueryParam = {groupID: req.query.groupID};
@@ -202,8 +202,8 @@ app.route("/displayGroup")
         // console.log(util.inspect(req.body, {showHidden: false, depth: null}));
         var DBQueryString =
                "INSERT INTO GROUP_LISTS (GROUP_ID, FRIEND_ID, DATE_ADDED, NOTICE)" +
-               "VALUES (:group_id, :user_name, :date_added, :notice)" ,
-               DBQueryParam = {group_id: req.body.group_id, user_name: req.body.user_name, date_added: null, notice: null};
+               "VALUES (:group_id, :user_name, CURRENT_DATE, :notice)" ,
+               DBQueryParam = {group_id: req.body.group_id, user_name: req.body.user_name, notice: null};
 
            oracledb.getConnection(dbConfig, function (err, connection) {
                if (err) {
@@ -339,16 +339,15 @@ app.route("/groups")
         var DBQueryString =
             "BEGIN\n " +
             "INSERT INTO GROUPS (GROUP_ID, USER_NAME, GROUP_NAME, DATE_CREATED) " +
-            "VALUES (:groupID, :userName, :groupName, :date_created); " +
+            "VALUES (:groupID, :userName, :groupName, CURRENT_DATE); " +
 
             "INSERT INTO GROUP_LISTS (GROUP_ID, FRIEND_ID, DATE_ADDED, NOTICE) " +
-            "VALUES (:groupID, :userName, :date_created, :notice); " +
+            "VALUES (:groupID, :userName, CURRENT_DATE, :notice); " +
 
             "END;",
             DBQueryParam = {groupID: req.body.groupID,
                             userName: req.body.userName,
                             groupName: req.body.groupName,
-                            date_created: null,
                             notice: null
                             };
 
@@ -441,13 +440,12 @@ app.route("/register")
             addr = req.body.addr;
             email = req.body.email;
             phone = req.body.phone;
-            date = null;
 
             // Need to find how to calculate the current datestamp
             DBQueryStringUsers =
             "INSERT INTO users " +
             "(USER_NAME, PASSWORD, DATE_REGISTERED) " +
-            "VALUES (:username, :password, :date); ";
+            "VALUES (:username, :password, CURRENT_DATE); ";
 
             DBQueryStringPersons =
             "INSERT INTO persons " +
@@ -459,7 +457,6 @@ app.route("/register")
             // Need to put the parameters in here
             DBQueryParam = {username: username,
                                   password: password,
-                                  date: date,
                                   first_name: fname,
                                   last_name: lname,
                                   address: addr,

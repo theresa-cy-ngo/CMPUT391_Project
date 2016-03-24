@@ -30,7 +30,10 @@ angular.module("myApp.displayGroups", ["ngRoute", "LocalStorageModule", "myApp.g
             var index = 0;
             if(result.data.success){
                 for(index; index < result.data.results.length; index++){
-                    $scope.groups.push({"name": result.data.results[index][1], "date": result.data.results[index][0]});
+                    date_added = result.data.results[index][1];
+                    var date_var = new Date(date_added)
+                    var date_string = date_var.toDateString();
+                    $scope.groups.push({"name": result.data.results[index][0], "date": date_string});
                 }
                 console.log($scope.groups);
             }else{
