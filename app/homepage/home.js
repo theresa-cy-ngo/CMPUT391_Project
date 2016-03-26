@@ -7,7 +7,7 @@ angular.module("myApp.home", ["ngRoute", "LocalStorageModule"])
     });
 }])
 
-.controller("HomeController", function($scope, $location, localStorageService) {
+.controller("HomeController", function($scope, $location, $route, localStorageService) {
     var usernameFromStorage,
         storageKey = "user";
 
@@ -34,6 +34,11 @@ angular.module("myApp.home", ["ngRoute", "LocalStorageModule"])
     };
     $scope.upload = function () {
       $location.url("/upload");
+    };
+
+    $scope.logout = function () {
+      localStorageService.clearAll();
+      $route.reload();
     };
 
 
