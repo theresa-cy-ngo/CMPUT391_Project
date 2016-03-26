@@ -2,16 +2,7 @@ var SERVICE_BASE_URL = 'http://localhost:8080/';
 
 angular.module("myApp.upload.uploadHandler", [])
 .service("uploadHandler", function($http, $q) {
-    this.uploadFile = function(photoData, thumbnailData callback){
-        var requestBody = {};
-        var data = imagedata.slice(13);
-        requestBody = {
-            id: 4,
-            description: "description",
-            data: photoData,
-            thumbnail: thumbnailData,
-            date: null
-        };
+    this.uploadFile = function(requestBody, callback){
 
         $http({
             url: SERVICE_BASE_URL + "upload",
@@ -24,6 +15,19 @@ angular.module("myApp.upload.uploadHandler", [])
         function(result) { // optional
             return callback(result);
         });
+    };
+
+    this.getID = function(callback){
+      $http({
+          url: SERVICE_BASE_URL + "photoid",
+          method: "POST"
+      })
+      .then(function(result) {
+          return callback(result);
+      },
+      function(result) { // optional
+          return callback(result);
+      });
     };
 
     this.showFile = function(photoid, callback){

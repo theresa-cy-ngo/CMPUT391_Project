@@ -15,66 +15,41 @@
     <script src="bower_components/angular/angular.js"></script>
 
     <style>
-        .tableHeader{
-            background-color: transparent !important;
+        .inputForm{
+          display:block;
+          margin-bottom: 20px;
         }
-        tr:hover{
-            background-color: #99ccff;
-        }
-
     </style>
 </head>
 <body>
   <div class="uploadContainer" style="margin-left:20px;">
-      <input type="file" file-model="myFile"/>
+      <form name="photoForm">
+          <input style="margin-bottom: 50px; margin-top:20px;" required="" type="file" file-model="myFile"/>
 
-      <button ng-click="showFile()">show me</button>
+          <label class="inputForm" for="permissionInput"> Permission (public = 1 OR private = 2 OR GROUP ID )
+            <input class="form-control input-sm" ng-model="imgPerm" type="text"  required="" style="width: 50%">
+          </label>
 
+          <label class="inputForm" for="subjectInput"> Subject
+            <input class="form-control input-sm" ng-model="imgSubject" type="text" required="" style="width: 50%">
+          </label>
 
-      <div class="username">
-      <div class="form-group">
-        <label for="usernameInput">Username</label>
-        <input class="form-control input-sm" ng-model="imgUser" type="text" style="width: 50%;">
-        </div>
-      </div>
+          <label class="inputForm" for="locationInput"> Location
+            <input class="form-control input-sm" ng-model="imgLocation" type="text" required="" style="width: 50%">
+          </label>
 
-    <!--Maybe make this a drop-down box later-->
-    <div class="permission">
-      <div class="form-group">
-        <label for="permissionInput">Permission (public, private, group)</label>
-        <input class="form-control input-sm" ng-model="imgPermit" type="text" style="width: 50%;">
-      </div>
-    </div>
+          <md-input-container>
+            <label>Date taken:</label>
+            <input ng-model="imgWhen" type="date" required="">
+          </md-input-container>
 
-    <div class="subject">
-      <div class="form-group">
-        <label for="subjectInput">Subject</label>
-        <input class="form-control input-sm" ng-model="imgSubject" type="text" style="width: 50%;">
-      </div>
-    </div>
+          <label class="inputForm" for="descInput" style="margin-top: 20px;">Description
+            <input class="form-control input-lg" ng-model="imgDesc" type="text" required="" style="width: 50%">
+          </label>
 
-    <div class="location">
-      <div class="form-group">
-        <label for="locationInput">Location</label>
-        <input class="form-control input-sm" ng-model="imgLocation" type="text" style="width: 50%;">
-      </div>
-    </div>
-
-    <div class="when">
-      <div class="form-group">
-        <label for="whenInput">When</label>
-        <input class="form-control input-sm" ng-model="imgWhen" type="text" style="width: 50%;">
-      </div>
-    </div>
-
-    <div class="description">
-      <div class="form-group">
-        <label for="descInput">Description</label>
-        <input class="form-control input-sm" ng-model="imgDesc" type="text" style="width: 50%;">
-      </div>
-    </div>
-
-    <button class="btn btn-default" ng-click="uploadFile()">upload me</button>
+          <button class="btn btn-default" ng-click="uploadFile()" ng-disabled="photoForm.$invalid">UPLOAD</button>
+      </form>
+<!-- ng-disabled="photoForm.$invalid" -->
 
 </div>
 

@@ -102,27 +102,47 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "myApp.upload.u
         return dataUrl;
     };
 
-    $scope.uploadFile = function(){
+    getRequestBody = function(photoData, thumbnailData, pid){
+      var requestBody = {},
+          pData = photoData.slice(13),
+          tData = thumbnailData.slice(13),
+          sqlDate = $scope.imgWhen.toISOString().slice(0, 19).replace('T', ' ');
+          // sqlDate = new Date($scope.imgWhen);
+
+      requestBody = {
+          photo_id: pid + 1,
+          owner_name: usernameFromStorage,
+          permitted: $scope.imgPerm,
+          subject: $scope.imgSubject,
+          place: $scope.imgLocation,
+          timing: sqlDate,
+          descr: $scope.imgDesc,
+          thumbnail: tData,
+          photo: pData
+      };
+
+
+      return requestBody;
+    };
+
+    $scope.uploadFile = function(e){
        var  file = $scope.myFile,
             reader = new FileReader();
        reader.readAsDataURL(file);
-       reader.onloadend = function(e) {
+       reader.onloadend = function() {
          var  photoData = reader.result,
-              thumbnailData = resizeToThumbnail(base64data);
-
-        // var image = new Image();
-        // image.src = thumbnailData;
-        // document.body.appendChild(image);
-
-         uploadHandler.uploadFile(photoData, thumbnailData, function(result){
-            // console.log("RESULT FROM INSERT IS " + result);
-            alert("uploaded file");
+              thumbnailData = resizeToThumbnail(photoData),
+              requestBody;
+          uploadHandler.getID(function(result){
+              if(result.data.success){
+                requestBody = getRequestBody(photoData, thumbnailData, result.data.result[0][0]);
+                //console.log(requestBody);
+                uploadHandler.uploadFile(requestBody, function(result){
+                   alert("uploaded file");
+                 });
+              }
           });
-       }
-
-
-       //var uploadUrl = "/fileUpload";
-       //uploadHandler.uploadFileToUrl(file, uploadUrl);
+        } //end onloadend
    };
 
    function parseResult (result){

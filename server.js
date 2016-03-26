@@ -110,6 +110,36 @@ app.post("/login", function (req, res) {
     );
 });
 
+app.post("/photoid", function(req, res){
+  var DBQueryString;
+
+      DBQueryString =
+            "SELECT photo_id " +
+            "FROM images " +
+            "WHERE images.photo_id = " +
+            "(SELECT MAX(photo_id) FROM images)";
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+            connection.execute(DBQueryString,
+                function (err, result) {
+                    // console.log(util.inspect(result, {showHidden: false, depth: null}));
+                    if (err) {
+                        executeError(err, res);
+                    } else {
+                        // Should return the max id currently in the table
+                        res.send({result: result.rows, success:true});
+                    }
+                    doRelease(connection);
+                }
+            );
+        });
+});
+
+
 app.post("/groupid", function(req, res){
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
@@ -148,10 +178,23 @@ app.post("/groupid", function(req, res){
 
 //Based on code found here: https://github.com/oracle/node-oracledb/blob/master/doc/api.md#lobhandling
 app.post("/upload", function(req, res){
+  console.log(req.body.timing);
     var DBQueryString =
-        // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING recoreded_data, thumbnail INTO :lobbv, :lobtn",
-        "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (7, 'test1', null, null, null, null, null, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
-        DBQueryParam = {lobbv: {type: oracledb.BLOB, dir: oracledb.BIND_OUT}, lobtn: {type: oracledb.BLOB, dir: oracledb.BIND_OUT}};
+        // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
+        // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (7, 'test1', null, null, null, null, null, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
+//TO_DATE(timing, 'YYYY-MM-DD')
+"INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, CURRENT_DATE, :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
+
+        DBQueryParam = {photo_id: req.body.photo_id,
+                        owner_name: req.body.owner_name,
+                        permitted: req.body.permitted,
+                        subject: req.body.subject,
+                        place: req.body.place,
+                        //timing: {val: req.body.timing, type: oracledb.DATE, dir: oracledb.BIND_IN},
+                        description: req.body.descr,
+                        lobbv: {type: oracledb.BLOB, dir: oracledb.BIND_OUT},
+                        lobtn: {type: oracledb.BLOB, dir: oracledb.BIND_OUT}
+                      };
 
 
     oracledb.getConnection(dbConfig, function (err, connection) {
@@ -174,7 +217,7 @@ app.post("/upload", function(req, res){
                     executeError(err, res);
                 } else {
                     // Create an ArrayBuffer from the base64 image
-                    byteCharacters = atob(req.body.data);
+                    byteCharacters = atob(req.body.photo);
                     bytes = new Uint8Array(byteCharacters.length);
                     for (i = 0; i < byteCharacters.length; i++) {
                         bytes[i] = byteCharacters.charCodeAt(i);
@@ -274,8 +317,8 @@ app.post("/upload", function(req, res){
 
 app.get("/upload", function(req, res){
     var DBQueryString =
-        "select * from images where photo_id = 7",
-        DBQueryParam = {};
+        "select * from images where photo_id = :photoid",
+        DBQueryParam = {photoid: req.query.photoID};
 
 
         oracledb.getConnection(dbConfig, function (err, connection) {
@@ -314,7 +357,6 @@ app.get("/upload", function(req, res){
                                 //When the data is finished coming in, change it to base 64 and add to result
                                 lob.on("end", function () {
                                     result.rows[index][row.length-1] = buffer.toString("base64");
-                                    doRelease(connection);
                                 });
                                 // When the stream closes, resolce the promsie
                                 lob.on("close", function (chunk) {
@@ -340,7 +382,6 @@ app.get("/upload", function(req, res){
                                 //When the data is finished coming in, change it to base 64 and add to result
                                 thumbnailLob.on("end", function () {
                                     result.rows[index][row.length-2] = thumbnailBuffer.toString("base64");
-                                    doRelease(connection);
                                 });
                                 // When the stream closes, resolve the promsie
                                 thumbnailLob.on("close", function (chunk) {
@@ -369,10 +410,6 @@ app.get("/upload", function(req, res){
 
             );
         });
-
-
-
-
 });
 
 
