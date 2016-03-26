@@ -39,25 +39,43 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
        return thumb;
     };
 
+    // Gets the gallery for the user's uploaded images
     displayHandler.getPictures(usernameFromStorage, function(result){
         var index = 0;
-        for (index; index < result.data.data.length; index++){
-            var  image = new Image(),
-                 photoString = result.data.data[index][8],
-                 photo = parseImageResult(photoString);
-            var imageThumb = new Image(),
-                thumbString = result.data.data[index][7],
-                thumb = parseThumbResult(thumbString);
+        if (result.data.data) {
+            for (index; index < result.data.data.length; index++){
+                var  image = new Image(),
+                    photoString = result.data.data[index][8],
+                    photo = parseImageResult(photoString);
+                var imageThumb = new Image(),
+                    thumbString = result.data.data[index][7],
+                    thumb = parseThumbResult(thumbString);
 
-            image.src = "data:image/png;base64," + photo;
-            imageThumb.src = "data:image/png;base64," + thumb;
-            $scope.myPictures.push({thumb: imageThumb.src, img: image.src, description: result.data.data[index][3]})
-      }
-        //document.body.appendChild(image);
+                image.src = "data:image/png;base64," + photo;
+                imageThumb.src = "data:image/png;base64," + thumb;
+                $scope.myPictures.push({thumb: imageThumb.src, img: image.src, description: result.data.data[index][3]})
+            }
+        };
     });
 
+    // Retrieves the gallery for the user's group and public images
+    displayHandler.getGroupPictures(usernameFromStorage, function(result){
+        var index = 0;
+        if (result.data.data) {
+            for (index; index < result.data.data.length; index++){
+                var  image = new Image(),
+                    photoString = result.data.data[index][8],
+                    photo = parseImageResult(photoString);
+                var imageThumb = new Image(),
+                    thumbString = result.data.data[index][7],
+                    thumb = parseThumbResult(thumbString);
 
-
+                image.src = "data:image/png;base64," + photo;
+                imageThumb.src = "data:image/png;base64," + thumb;
+                $scope.groupPictures.push({thumb: imageThumb.src, img: image.src, description: result.data.data[index][3]})
+            }
+        };
+    });
 
     // $scope.myPictures = [
     // {thumb: 'images/thumbs/1.jpg', img: 'images/1.jpg', description: 'Subject: fkdsj;afljdlka, Location: jfklsajklf;jdsaljdflkas, Description: fdksl;ajlfdjslajfdklsj;'},

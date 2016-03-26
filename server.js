@@ -503,117 +503,95 @@ app.post("/getMyPictures", function(req, res){
         "FROM images " +
         "WHERE images.owner_name = :userName" ,
         DBQueryParam = {userName: req.query.userName};
-        oracledb.getConnection(dbConfig, function (err, connection) {
-            if (err) {
-                connectionError(err, res);
-                return;
-            }
-           connection.execute(DBQueryString, DBQueryParam,
-               function (err, result) {
-                   var lob, buffer, bufferLength;
-                        // Array of promises
-                        var lobLoading = [];
-                        var lobPromises = [];
-                   if (err) {
-                       executeError(err, res);
-                   } else {
-                       result.rows.forEach(function (row, index, array) {
-                            console.log(row);
-                            lob = row[row.length-1];
-                            thumbnailLob = row[row.length-2];
-                            buffer = new Buffer(0);
-                            bufferLength = 0;
-                            thumbnailBuffer = new Buffer(0);
-                            thumbnailBufferLength = 0;
-                            if (lob) {
-                                // Add promise at index
-                                // Have to use index*2 because each row has two blobs
-                                // Q sucks, so we have to make an array of the deferreds and the promises...
-                                lobLoading[index*2] = Q.defer();
-                                lobPromises[index*2] = lobLoading[index*2].promise;
-                                // When data comes in from the stream, add it to the buffer
-                                lob.on("data", function (chunk) {
-                                    bufferLength = bufferLength + chunk.length;
-                                    buffer = Buffer.concat([buffer, chunk], bufferLength);
-                                });
-                                //When the data is finished coming in, change it to base 64 and add to result
-                                lob.on("end", function () {
-                                    result.rows[index][row.length-1] = buffer.toString("base64");
-                                    //doRelease(connection);
-                                });
-                                // When the stream closes, resolce the promsie
-                                lob.on("close", function (chunk) {
-                                    // Fulfill promise
-                                    lobLoading[index*2].resolve();
-                                });
-                                // Make sure we reject the promise when the stream fails so that we don't have a memory leak
-                                lob.on("error", function () {
-                                    executeError(err, res);
-                                    // Reject promise
-                                    lobLoading[index*2].reject();
-                                });
-                            }
-                            if (thumbnailLob) {
-                                // Add promise at index
-                                lobLoading[index*2+1] = Q.defer();
-                                lobPromises[index*2+1] = lobLoading[index*2+1].promise;
-                                // When data comes in from the stream, add it to the buffer
-                                thumbnailLob.on("data", function (chunk) {
-                                    thumbnailBufferLength = thumbnailBufferLength + chunk.length;
-                                    thumbnailBuffer = Buffer.concat([thumbnailBuffer, chunk], thumbnailBufferLength);
-                                });
-                                //When the data is finished coming in, change it to base 64 and add to result
-                                thumbnailLob.on("end", function () {
-                                    result.rows[index][row.length-2] = thumbnailBuffer.toString("base64");
-                                    //doRelease(connection);
-                                });
-                                // When the stream closes, resolve the promsie
-                                thumbnailLob.on("close", function (chunk) {
-                                    // Fulfill promise
-                                    lobLoading[index*2+1].resolve();
-                                });
-                                // Make sure we reject the promise when the stream fails so that we don't have a memory leak
-                                thumbnailLob.on("error", function () {
-                                    executeError(err, res);
-                                    // Reject promise
-                                    lobLoading[index*2+1].reject();
-                                });
-                            }
-                        });
-                        // When all promises complete, return the results
-                        Q.allSettled(lobPromises).then(function () {
-                            doRelease(connection);
-                            res.send({
-                                success: true,
-                                data: result.rows
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           function (err, result) {
+               var lob, buffer, bufferLength;
+                    // Array of promises
+                    var lobLoading = [];
+                    var lobPromises = [];
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   result.rows.forEach(function (row, index, array) {
+                        lob = row[row.length-1];
+                        thumbnailLob = row[row.length-2];
+                        buffer = new Buffer(0);
+                        bufferLength = 0;
+                        thumbnailBuffer = new Buffer(0);
+                        thumbnailBufferLength = 0;
+                        if (lob) {
+                            // Add promise at index
+                            // Have to use index*2 because each row has two blobs
+                            // Q sucks, so we have to make an array of the deferreds and the promises...
+                            lobLoading[index*2] = Q.defer();
+                            lobPromises[index*2] = lobLoading[index*2].promise;
+                            // When data comes in from the stream, add it to the buffer
+                            lob.on("data", function (chunk) {
+                                bufferLength = bufferLength + chunk.length;
+                                buffer = Buffer.concat([buffer, chunk], bufferLength);
                             });
+                            //When the data is finished coming in, change it to base 64 and add to result
+                            lob.on("end", function () {
+                                result.rows[index][row.length-1] = buffer.toString("base64");
+                                //doRelease(connection);
+                            });
+                            // When the stream closes, resolce the promsie
+                            lob.on("close", function (chunk) {
+                                // Fulfill promise
+                                lobLoading[index*2].resolve();
+                            });
+                            // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+                            lob.on("error", function () {
+                                executeError(err, res);
+                                // Reject promise
+                                lobLoading[index*2].reject();
+                            });
+                        }
+                        if (thumbnailLob) {
+                            // Add promise at index
+                            lobLoading[index*2+1] = Q.defer();
+                            lobPromises[index*2+1] = lobLoading[index*2+1].promise;
+                            // When data comes in from the stream, add it to the buffer
+                            thumbnailLob.on("data", function (chunk) {
+                                thumbnailBufferLength = thumbnailBufferLength + chunk.length;
+                                thumbnailBuffer = Buffer.concat([thumbnailBuffer, chunk], thumbnailBufferLength);
+                            });
+                            //When the data is finished coming in, change it to base 64 and add to result
+                            thumbnailLob.on("end", function () {
+                                result.rows[index][row.length-2] = thumbnailBuffer.toString("base64");
+                                //doRelease(connection);
+                            });
+                            // When the stream closes, resolve the promsie
+                            thumbnailLob.on("close", function (chunk) {
+                                // Fulfill promise
+                                lobLoading[index*2+1].resolve();
+                            });
+                            // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+                            thumbnailLob.on("error", function () {
+                                executeError(err, res);
+                                // Reject promise
+                                lobLoading[index*2+1].reject();
+                            });
+                        }
+                    });
+                    // When all promises complete, return the results
+                    Q.allSettled(lobPromises).then(function () {
+                        doRelease(connection);
+                        res.send({
+                            success: true,
+                            data: result.rows
                         });
-                    }
+                    });
                 }
-
-                    // doRelease(connection);
-
-            );
-        });
+            }
+        );
+    });
 });
-    // oracledb.getConnection(dbConfig, function (err, connection) {
-    //     if (err) {
-    //         connectionError(err, res);
-    //         return;
-    //     }
-    //    connection.execute(DBQueryString, DBQueryParam,
-    //        {autoCommit: true},
-    //        function (err, result) {
-    //            if (err) {
-    //                executeError(err, res);
-    //            } else {
-    //                res.send({success: true, results: result.rows});
-    //            }
-    //            doRelease(connection);
-    //         }
-    //     );
-    // });
-
 
 // Retrieves pictures that others uploaded onto the database
 app.post("/getGroupPictures", function(req, res){
@@ -630,14 +608,86 @@ app.post("/getGroupPictures", function(req, res){
             return;
         }
        connection.execute(DBQueryString, DBQueryParam,
-           {autoCommit: true},
            function (err, result) {
+               var lob, buffer, bufferLength;
+                    // Array of promises
+                    var lobLoading = [];
+                    var lobPromises = [];
                if (err) {
                    executeError(err, res);
                } else {
-                   res.send({success: true, results: result.rows});
-               }
-               doRelease(connection);
+                   result.rows.forEach(function (row, index, array) {
+                        lob = row[row.length-1];
+                        thumbnailLob = row[row.length-2];
+                        buffer = new Buffer(0);
+                        bufferLength = 0;
+                        thumbnailBuffer = new Buffer(0);
+                        thumbnailBufferLength = 0;
+                        if (lob) {
+                            // Add promise at index
+                            // Have to use index*2 because each row has two blobs
+                            // Q sucks, so we have to make an array of the deferreds and the promises...
+                            lobLoading[index*2] = Q.defer();
+                            lobPromises[index*2] = lobLoading[index*2].promise;
+                            // When data comes in from the stream, add it to the buffer
+                            lob.on("data", function (chunk) {
+                                bufferLength = bufferLength + chunk.length;
+                                buffer = Buffer.concat([buffer, chunk], bufferLength);
+                            });
+                            //When the data is finished coming in, change it to base 64 and add to result
+                            lob.on("end", function () {
+                                result.rows[index][row.length-1] = buffer.toString("base64");
+                                //doRelease(connection);
+                            });
+                            // When the stream closes, resolce the promsie
+                            lob.on("close", function (chunk) {
+                                // Fulfill promise
+                                lobLoading[index*2].resolve();
+                            });
+                            // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+                            lob.on("error", function () {
+                                executeError(err, res);
+                                // Reject promise
+                                lobLoading[index*2].reject();
+                            });
+                        }
+                        if (thumbnailLob) {
+                            // Add promise at index
+                            lobLoading[index*2+1] = Q.defer();
+                            lobPromises[index*2+1] = lobLoading[index*2+1].promise;
+                            // When data comes in from the stream, add it to the buffer
+                            thumbnailLob.on("data", function (chunk) {
+                                thumbnailBufferLength = thumbnailBufferLength + chunk.length;
+                                thumbnailBuffer = Buffer.concat([thumbnailBuffer, chunk], thumbnailBufferLength);
+                            });
+                            //When the data is finished coming in, change it to base 64 and add to result
+                            thumbnailLob.on("end", function () {
+                                result.rows[index][row.length-2] = thumbnailBuffer.toString("base64");
+                                //doRelease(connection);
+                            });
+                            // When the stream closes, resolve the promsie
+                            thumbnailLob.on("close", function (chunk) {
+                                // Fulfill promise
+                                lobLoading[index*2+1].resolve();
+                            });
+                            // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+                            thumbnailLob.on("error", function () {
+                                executeError(err, res);
+                                // Reject promise
+                                lobLoading[index*2+1].reject();
+                            });
+                        }
+                    });
+                    // When all promises complete, return the results
+                    Q.allSettled(lobPromises).then(function () {
+                        doRelease(connection);
+                        console.log(result.rows);
+                        res.send({
+                            success: true,
+                            data: result.rows
+                        });
+                    });
+                }
             }
         );
     });
