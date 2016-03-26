@@ -4,6 +4,7 @@ angular.module("myApp", [
     "LocalStorageModule",
     "jkuri.gallery",
     "myApp.login",
+    "myApp.upload",
     "myApp.register",
     "myApp.display",
     "myApp.groups",

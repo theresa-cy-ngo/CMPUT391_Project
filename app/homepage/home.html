@@ -17,12 +17,15 @@
 <body>
     <h1 style="text-align: center;">Homepage</h1>
     <div class="buttonContainer" style="text-align: center;bottom: 50%;left: 35%;position: absolute;">
-      <button type="button" class="btn btn-primary">Upload</button>
+      <button type="button" class="btn btn-primary" ng-click="upload()">Upload</button>
       <button type="button" class="btn btn-primary" ng-click="display()">Display</button>
       <button type="button" class="btn btn-primary" ng-click="groups()">Groups</button>
       <button type="button" class="btn btn-primary" ng-click="search()">Search</button>
       <button type="button" class="btn btn-primary" ng-click="analysis()">Data Analysis</button>
     </div>
+
+    <button type="button" class="btn btn-danger" style="position: absolute; left: 50%; bottom: 20%;"ng-click="logout()">LOGOUT</button>
+
 
 </body>
 </html>

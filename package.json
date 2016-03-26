@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/jwoo12/CMPUT391_W16#readme",
   "dependencies": {
+    "atob": "^2.0.0",
     "body-parser": "^1.15.0",
     "bootstrap": "^3.3.6",
     "bower": "^1.7.7",
