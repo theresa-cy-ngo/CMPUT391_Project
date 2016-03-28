@@ -931,6 +931,133 @@ app.post("/getGroupPictures", function(req, res){
     });
 });
 
+// Get search results from only keywords
+app.post("/getKeyResults", function(req, res){
+    var DBQueryString =
+        "SELECT * " +
+        "FROM images " +
+        "WHERE (images.permitted IN " +
+        "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
+        "OR images.permitted = 1 OR (images.permitted = 2 AND images.owner_name = :userName)) " +
+        "AND (",
+        DBSearchString = "",
+        DBQueryParam = {userName: req.query.userName};
+
+    var keywords = req.query.keywords
+    var index = 0
+    for (index; index < keywords.length; index++) {
+        key = keywords[index];
+        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' "
+        if (index != 0) {
+          DBQueryString = DBQueryString + "OR" + DBSearchString
+        } else {
+          DBQueryString = DBQueryString + DBSearchString
+        }
+    }
+    DBQueryString = DBQueryString + ")"
+
+    console.log(DBQueryString);
+
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
+// Get search results from only a timeframe
+app.post("/getTimeResults", function(req, res){
+    var DBQueryString =
+        "SELECT * " +
+        "FROM images " +
+        "WHERE  (images.permitted IN " +
+        "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
+        "OR images.permitted = 1 " +
+        "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
+        "AND (images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))",
+        DBQueryParam = {userName: req.query.userName, startDate: req.query.timeStart, endDate: req.query.timeEnd};
+
+    console.log(DBQueryString);
+    console.log(DBQueryParam);
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
+// Get search results from both keywords and a timeframe
+app.post("/getKeyTimeResults", function(req, res){
+    var DBQueryString =
+        "SELECT * " +
+        "FROM images " +
+        "WHERE  (images.permitted IN " +
+        "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
+        "OR images.permitted = 1 " +
+        "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
+        "AND (images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))" +
+        "AND (",
+        DBSearchString = "",
+        DBQueryParam = {userName: req.query.userName, startDate: req.query.timeStart, endDate: req.query.timeEnd};
+
+    var keywords = req.query.keywords
+    var index = 0
+    for (index; index < keywords.length; index++) {
+        key = keywords[index];
+        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' "
+        if (index != 0) {
+          DBQueryString = DBQueryString + "OR" + DBSearchString
+        } else {
+          DBQueryString = DBQueryString + DBSearchString
+        }
+    }
+    DBQueryString = DBQueryString + ")"
+
+    console.log(DBQueryString);
+
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
 //Disconnect from Oracle
 function doRelease(connection)
 {

@@ -16,6 +16,46 @@
 </head>
 <body>
     <h1 style="text-align: center;">Search</h1>
+        <div style="padding-top: 20px">
+            <div class="searchContainer" style="margin: 0 auto; width: 50%; text-align: center;">
+                <div class="form-group">
+                    <label for="searchKey" style="float: left">Keywords</label>
+                    <input class="form-control input-sm" ng-model="searchKey" type="text" placeholder="Eg. 'dog, cat, rabbit'">
+                </div>
+
+                <div style="clear: none; float: left">
+                <md-input-container>
+                    <label>Start Date</label>
+                    <input ng-model="searchTimeBegin" type="date">
+                </md-input-container>
+                </div>
+                <div style="clear: none; float: right">
+                <md-input-container>
+                    <label>End Date</label>
+                    <input ng-model="searchTimeEnd" type="date">
+                </md-input-container>
+                </div>
+
+                <button class="btn btn-default" ng-click="search()" style="margin: 50px;">SEARCH</button>
+            </div>
+
+        </div>
+
+        <!-- <form name="searchForm">
+
+            <label class="searchLabel" for="keywordInput"> Keywords
+              <input class="form-control input-sm" ng-model="searchKey" type="text"  required="" style="width: 50%">
+            </label>
+
+            <label class="searchLabel" for="subjectInput"> Timeframe
+              <input class="form-control input-sm" ng-model="searchTime" type="text" required="" style="width: 50%">
+            </label>
+
+            <button class="btn btn-default" ng-click="search()">SEARCH</button>
+        </form>
+  <! ng-disabled="photoForm.$invalid" -->
+
+  </div>
 
 
 </body>

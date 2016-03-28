@@ -40,41 +40,54 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     };
 
     // Gets the gallery for the user's uploaded images
-    displayHandler.getPictures(usernameFromStorage, function(result){
-        var index = 0;
-        if (result.data.data) {
-            for (index; index < result.data.data.length; index++){
-                var  image = new Image(),
-                    photoString = result.data.data[index][8],
-                    photo = parseImageResult(photoString);
-                var imageThumb = new Image(),
-                    thumbString = result.data.data[index][7],
-                    thumb = parseThumbResult(thumbString);
-
-                image.src = "data:image/png;base64," + photo;
-                imageThumb.src = "data:image/png;base64," + thumb;
-                $scope.myPictures.push({thumb: imageThumb.src, img: image.src, description: result.data.data[index][3]})
-            }
-        };
-    });
+    // displayHandler.getPictures(usernameFromStorage, function(result){
+    //     var index = 0;
+    //     var myGalleryImage = new Image(),
+    //         myPhotoString,
+    //         myPhoto;
+    //     var myGalleryImageThumb = new Image(),
+    //         myThumbString,
+    //         myThumb;
+    //
+    //     if (result.data.data) {
+    //         for (index; index < result.data.data.length; index++){
+    //             myPhotoString = result.data.data[index][8],
+    //             myPhoto = parseImageResult(myPhotoString);
+    //             myThumbString = result.data.data[index][7],
+    //             myThumb = parseThumbResult(myThumbString);
+    //
+    //             myGalleryImage.src = "data:image/png;base64," + myPhoto;
+    //             myGalleryImageThumb.src = "data:image/png;base64," + myThumb;
+    //             $scope.myPictures[index] = {thumb: myGalleryImageThumb.src, img: myGalleryImage.src, description: result.data.data[index][3]};
+    //         }
+    //     };
+    // });
 
     // Retrieves the gallery for the user's group and public images
     displayHandler.getGroupPictures(usernameFromStorage, function(result){
         var index = 0;
-        if (result.data.data) {
-            for (index; index < result.data.data.length; index++){
-                var  image = new Image(),
-                    photoString = result.data.data[index][8],
-                    photo = parseImageResult(photoString);
-                var imageThumb = new Image(),
-                    thumbString = result.data.data[index][7],
-                    thumb = parseThumbResult(thumbString);
+        var groupImageArray = [],
+            groupPhotoString = [],
+            groupPhoto = [];
+        var groupImageThumbArray = [],
+            groupThumbString = [],
+            groupThumb = [];
 
-                image.src = "data:image/png;base64," + photo;
-                imageThumb.src = "data:image/png;base64," + thumb;
-                $scope.groupPictures.push({thumb: imageThumb.src, img: image.src, description: result.data.data[index][3]})
+        // if (result.data.data) {
+            console.log(result)
+            for (index; index < result.data.data.length; index++){
+                groupPhotoString[index] = result.data.data[index][8],
+                groupPhoto[index] = parseImageResult(groupPhotoString[index]);
+                groupThumbString[index] = result.data.data[index][7],
+                groupThumb[index] = parseThumbResult(groupThumbString[index]);
+
+                groupImageArray[index] = new Image();
+                groupImageArray[index].src = "data:image/png;base64," + groupPhoto[index];
+                groupImageThumbArray[index] = new Image();
+                groupImageThumbArray[index].src = "data:image/png;base64," + groupThumb[index];
+                $scope.groupPictures[index] = {thumb: groupImageThumbArray[index].src, img: groupImageArray[index].src, description: result.data.data[index][3]};
             }
-        };
+        // };
     });
 
     // $scope.myPictures = [

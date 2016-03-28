@@ -1,4 +1,4 @@
-angular.module("myApp.search", ["ngRoute", "LocalStorageModule"])
+angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.searchHandler"])
 
 .config(["$routeProvider", function($routeProvider) {
     $routeProvider.when("/search", {
@@ -7,7 +7,7 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule"])
     });
 }])
 
-.controller("searchController", function($scope, $location, localStorageService) {
+.controller("searchController", function($scope, $location, localStorageService, searchHandler) {
     var usernameFromStorage,
         storageKey = "user";
 
@@ -18,6 +18,66 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule"])
     if(!getItem(storageKey)){
         //User has not logged in yet so redirect to login
         $location.url("/login");
+    } else {
+        usernameFromStorage = getItem(storageKey);
     }
+
+    // Changes the format of the date so that it can be searched in the database
+    function formatDate(date, placement) {
+        if (placement == 1) {
+          date.setDate(date.getDate() + 1);
+        }
+        var dd = date.getDate(),
+            mm = date.getMonth()+1,
+            yyyy = date.getFullYear(),
+            dateString = ""
+        if(dd<10){
+            dd='0'+dd
+        }
+        if(mm<10){
+            mm='0'+mm
+        }
+        dateString = yyyy + "/" + mm + "/" + dd
+        return dateString
+    }
+
+    // Search function after the SEARCH button is pressed
+    $scope.search = function() {
+      // Only uses keyword
+      var keywords = $scope.searchKey,
+          keyArray = [];
+      if ($scope.searchKey && !$scope.searchTimeBegin && !$scope.searchTimeEnd){
+        keyArray = $.map(keywords.split(","), $.trim);
+        console.log(keyArray);
+        searchHandler.getKeyResults(usernameFromStorage, keyArray, function(result){
+          console.log(result.data);
+        });
+
+      // Only uses time
+      } else if (!$scope.searchKey && $scope.searchTimeBegin && $scope.searchTimeEnd) {
+        var timeBegin = $scope.searchTimeBegin;
+            timeEnd = $scope.searchTimeEnd;
+        timeBegin = formatDate(timeBegin, 0);
+        timeEnd = formatDate(timeEnd, 1);
+        searchHandler.getTimeResults(usernameFromStorage, timeBegin, timeEnd, function(result){
+          console.log(result.data);
+        });
+
+      // Uses all fields
+      } else if ($scope.searchKey && $scope.searchTimeBegin && $scope.searchTimeEnd) {
+        keyArray = $.map(keywords.split(","), $.trim);
+        var timeBegin = $scope.searchTimeBegin;
+            timeEnd = $scope.searchTimeEnd;
+        timeBegin = formatDate(timeBegin, 0);
+        timeEnd = formatDate(timeEnd, 1);
+        searchHandler.getKeyTimeResults(usernameFromStorage, keyArray, timeBegin, timeEnd, function(result){
+          console.log(result.data);
+        });
+
+      // All other inputs
+      } else {
+        console.log("Please enter a valid input");
+      };
+    };
 
 });
