@@ -3,6 +3,7 @@ angular.module("myApp", [
     "ngRoute",
     "LocalStorageModule",
     "jkuri.gallery",
+    "ngFileUpload",
     "myApp.login",
     "myApp.upload",
     "myApp.register",
