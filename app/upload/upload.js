@@ -24,6 +24,22 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload",
         usernameFromStorage = getItem(storageKey);
     }
 
+    // Formats the date to be put into the database
+    function formatDate(date) {
+        var dd = date.getDate(),
+            mm = date.getMonth()+1,
+            yyyy = date.getFullYear(),
+            dateString = ""
+        if(dd<10){
+            dd='0'+dd
+        }
+        if(mm<10){
+            mm='0'+mm
+        }
+        dateString = yyyy + "/" + mm + "/" + dd
+        return dateString
+    }
+
     //Based on code found here: http://stackoverflow.com/questions/23945494/use-html5-to-resize-an-image-before-upload
     function dataURLToBlob (dataURL) {
         var BASE64_MARKER = ';base64,';
@@ -87,7 +103,10 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload",
       var requestBody = {},
           pData = photoData.slice(13),
           tData = thumbnailData.slice(13),
-          sqlDate = $scope.imgWhen.toISOString().slice(0, 19).replace('T', ' ');
+          date = $scope.imgWhen;
+
+      date = formatDate(date, 0);
+          //sqlDate = $scope.imgWhen.toISOString().slice(0, 19).replace('T', ' ');
           // sqlDate = new Date($scope.imgWhen);
 
       requestBody = {
@@ -96,7 +115,7 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload",
           permitted: $scope.imgPerm,
           subject: $scope.imgSubject,
           place: $scope.imgLocation,
-          timing: sqlDate,
+          timing: date,
           descr: $scope.imgDesc,
           thumbnail: tData,
           photo: pData

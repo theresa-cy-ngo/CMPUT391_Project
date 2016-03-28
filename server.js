@@ -183,19 +183,20 @@ app.post("/upload", function(req, res){
         // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
         // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (7, 'test1', null, null, null, null, null, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
 //TO_DATE(timing, 'YYYY-MM-DD')
-"INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, CURRENT_DATE, :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
+"INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, TO_DATE (:timing, 'yyyy/mm/dd'), :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
 
         DBQueryParam = {photo_id: req.body.photo_id,
                         owner_name: req.body.owner_name,
                         permitted: req.body.permitted,
                         subject: req.body.subject,
                         place: req.body.place,
-                        //timing: {val: req.body.timing, type: oracledb.DATE, dir: oracledb.BIND_IN},
+                        timing: req.body.timing,
                         description: req.body.descr,
                         lobbv: {type: oracledb.BLOB, dir: oracledb.BIND_OUT},
                         lobtn: {type: oracledb.BLOB, dir: oracledb.BIND_OUT}
                       };
 
+        console.log(req.body.timing);
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
