@@ -8,6 +8,7 @@ angular.module("myApp", [
     "myApp.upload",
     "myApp.register",
     "myApp.display",
+    "myApp.edit",
     "myApp.groups",
     "myApp.displayGroups",
     "myApp.analysis",

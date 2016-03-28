@@ -44,4 +44,18 @@ angular.module("myApp.display.displayHandler", [])
       });
   };
 
+  this.editImage = function (photo_id, permitted, subject, loc, date, desc, callback) {
+      $http({
+          url: SERVICE_BASE_URL + "editImage",
+          method: "POST",
+          params: {photo_id: photo_id, permitted: permitted, subject: subject, loc: loc, timing: date, desc: desc}
+      })
+      .then(function(result) {
+          return callback(result);
+      },
+      function(result) {
+          return callback(result);
+      });
+  };
+
 });

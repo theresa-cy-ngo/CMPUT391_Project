@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" ng-controller="editController">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Cmput391</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+
+    <style>
+        .inputForm{
+          display:block;
+          margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+  <div class="editContainer" style="margin-left:20px;">
+      <form name="photoForm">
+
+          <label class="inputForm" for="permissionInput"> Permission (public = 1 OR private = 2 OR GROUP ID )
+            <input class="form-control input-sm" ng-model="imgPerm" type="text"  required="" style="width: 50%">
+          </label>
+
+          <label class="inputForm" for="subjectInput"> Subject
+            <input class="form-control input-sm" ng-model="imgSubject" type="text" required="" style="width: 50%">
+          </label>
+
+          <label class="inputForm" for="locationInput"> Location
+            <input class="form-control input-sm" ng-model="imgLocation" type="text" required="" style="width: 50%">
+          </label>
+
+          <md-input-container>
+            <label>Date taken</label>
+            <input ng-model="imgWhen" type="date" required="">
+          </md-input-container>
+
+          <label class="inputForm" for="descInput" style="margin-top: 20px;">Description
+            <input class="form-control input-lg" ng-model="imgDesc" type="text" required="" style="width: 50%">
+          </label>
+
+          <button class="btn btn-default" ng-click="editImage()" ng-disabled="photoForm.$invalid">EDIT</button>
+      </form>
+<!-- ng-disabled="photoForm.$invalid" -->
+
+</div>
+
+</body>
+</html>

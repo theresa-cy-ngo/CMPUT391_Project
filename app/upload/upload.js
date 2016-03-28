@@ -11,8 +11,6 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload",
     var usernameFromStorage,
         storageKey = "user";
 
-    $scope.groups = [];
-
     function getItem(key) {
         return localStorageService.get(key);
     };
@@ -105,7 +103,7 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload",
           tData = thumbnailData.slice(13),
           date = $scope.imgWhen;
 
-      date = formatDate(date, 0);
+      date = formatDate(date);
           //sqlDate = $scope.imgWhen.toISOString().slice(0, 19).replace('T', ' ');
           // sqlDate = new Date($scope.imgWhen);
 

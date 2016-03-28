@@ -809,7 +809,37 @@ getImages = function (row, index) {
 
 };
 
-
+// Sends edits of an image into the database
+app.post("/editImage", function(req, res){
+    var DBQueryString =
+        "UPDATE images " +
+        "SET permitted = :permitted, subject = :subject, place = :place, timing = TO_DATE (:timing, 'yyyy/mm/dd'), description = :desc " +
+        "WHERE photo_id = :photo_id" ,
+        DBQueryParam = {photo_id: req.query.photo_id,
+                        permitted: req.query.permitted,
+                        subject: req.query.subject,
+                        place: req.query.loc,
+                        timing: req.query.timing,
+                        desc: req.query.desc};
+                        
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
 
 
 // Retrieves pictures that the user uploaded onto the database
