@@ -74,7 +74,7 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
                 imageThumb.src = "data:image/png;base64," + thumb;
                 $scope.groupPictures.push({thumb: image.src, img: image.src, description: result.data.rows[index][3]})
             }
-        // };
+        };
     });
 
 });
