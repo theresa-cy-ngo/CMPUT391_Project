@@ -1,4 +1,4 @@
-angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "myApp.upload.uploadHandler"])
+angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload", "myApp.upload.uploadHandler"])
 
 .config(["$routeProvider", function($routeProvider) {
     $routeProvider.when("/upload", {
@@ -7,25 +7,7 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "myApp.upload.u
     });
 }])
 
-//Based on code found here: https://jsfiddle.net/JeJenny/ZG9re/
-//And here: https://hacks.mozilla.org/2011/01/how-to-develop-a-html5-image-uploader/
-.directive('fileModel', ['$parse', function ($parse) {
-    return {
-        restrict: 'A',
-        link: function(scope, element, attrs) {
-            var model = $parse(attrs.fileModel);
-            var modelSetter = model.assign;
-
-            element.bind('change', function(){
-                scope.$apply(function(){
-                    modelSetter(scope, element[0].files[0]);
-                });
-            });
-        }
-    };
-}])
-
-.controller("uploadController", function($scope, $location, localStorageService, uploadHandler) {
+.controller("uploadController", function($scope, $location, $q, localStorageService, uploadHandler) {
     var usernameFromStorage,
         storageKey = "user";
 
@@ -97,7 +79,6 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "myApp.upload.u
         var ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
         var dataUrl = canvas.toDataURL('image/jpeg');
-        var resizedImage = dataURLToBlob(dataUrl);
 
         return dataUrl;
     };
@@ -110,7 +91,7 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "myApp.upload.u
           // sqlDate = new Date($scope.imgWhen);
 
       requestBody = {
-          photo_id: pid + 1,
+          photo_id: pid,
           owner_name: usernameFromStorage,
           permitted: $scope.imgPerm,
           subject: $scope.imgSubject,
@@ -125,24 +106,111 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "myApp.upload.u
       return requestBody;
     };
 
-    $scope.uploadFile = function(e){
-       var  file = $scope.myFile,
-            reader = new FileReader();
-       reader.readAsDataURL(file);
-       reader.onloadend = function() {
-         var  photoData = reader.result,
-              thumbnailData = resizeToThumbnail(photoData),
-              requestBody;
-          uploadHandler.getID(function(result){
-              if(result.data.success){
-                requestBody = getRequestBody(photoData, thumbnailData, result.data.result[0][0]);
-                //console.log(requestBody);
-                uploadHandler.uploadFile(requestBody, function(result){
-                   alert("uploaded file");
-                 });
-              }
-          });
-        } //end onloadend
+
+    processFiles = function (file) {
+      var deferred = $q.defer(),
+          reader = new FileReader(),
+          photoData,
+          thumbData;
+
+
+      reader.readAsDataURL(file);
+
+      reader.onloadend = function() {
+          var  photoData = reader.result,
+               thumbnailData = resizeToThumbnail(photoData);
+          deferred.resolve({pdata: photoData, thumb: thumbnailData});
+      }
+
+      return deferred.promise;
+    };
+
+
+    sendRequest = function (photoData) {
+
+      var getID = function() {
+                    var deferred = $q.defer();
+                    uploadHandler.getID(function(result){
+                        var latestID;
+                        if(result.data.success){
+                            latestID = result.data.result[0][0];
+                            deferred.resolve(latestID);
+                        }
+                    });
+                    return deferred.promise;
+                };
+
+      getID().then(function(ID){
+            for(var i = 0; i < photoData.length; i++){
+                  requestBody = getRequestBody(photoData[i].photo, photoData[i].thumb, ID+1+i);
+                  uploadHandler.uploadFile(requestBody, function(result){
+                     alert("uploaded file");
+                   });
+            }
+      });
+
+
+
+
+      // for(var i = 0; i < photoData.length; i++){
+      //     // uploadHandler.getID(function(result){
+      //     //     var requestBody = {};
+      //     //     if(result.data.success){
+      //     //         requestBody = getRequestBody(photoData[i].photo, photoData[i].thumb, result.data.result[0][0]);
+      //     //         // uploadHandler.uploadFile(requestBody, function(result){
+      //     //         //    alert("uploaded file");
+      //     //         //  });
+      //     //         console.log(requestBody);
+      //     //     }
+      //     // }).bind(photoData);
+      //     // requestBody = getRequestBody(photoDatas[i].photo, photoDatas[i].thumb, result.data.result[0][0]);
+      //     // console.log(requestBody);
+      // }
+
+    };
+
+
+    $scope.uploadFile = function(files){
+          var resultArr = [];
+
+
+          if (files && files.length) {
+            for (var i = 0; i < files.length; i++) {
+                  processFiles(files[i]).then(function(result){
+                      //do http request
+                      resultArr.push({photo: result.pdata, thumb: result.thumb});
+
+                      if(resultArr.length == files.length){
+                        // console.log(resultArr);
+                        sendRequest(resultArr);
+                      }
+                  });
+            }
+          }
+
+
+
+
+          // processFiles(files).then(function(result){
+          //     //do http request
+          //     console.log(result);
+          // });
+
+      //  reader.readAsDataURL(file);
+      //  reader.onloadend = function() {
+      //    var  photoData = reader.result,
+      //         thumbnailData = resizeToThumbnail(photoData),
+      //         requestBody;
+          // uploadHandler.getID(function(result){
+          //     if(result.data.success){
+          //       requestBody = getRequestBody(photoData, thumbnailData, result.data.result[0][0]);
+          //       //console.log(requestBody);
+          //       uploadHandler.uploadFile(requestBody, function(result){
+          //          alert("uploaded file");
+          //        });
+          //     }
+          // });
+        // } //end onloadend
    };
 
    function parseResult (result){

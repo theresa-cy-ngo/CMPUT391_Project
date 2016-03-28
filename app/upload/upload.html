@@ -24,7 +24,8 @@
 <body>
   <div class="uploadContainer" style="margin-left:20px;">
       <form name="photoForm">
-          <input style="margin-bottom: 50px; margin-top:20px;" required="" type="file" file-model="myFile"/>
+          <input style="margin-bottom: 50px; margin-top:20px;" required="" type="file" ng-model="files" ngf-multiple="true" ngf-select/>
+
 
           <label class="inputForm" for="permissionInput"> Permission (public = 1 OR private = 2 OR GROUP ID )
             <input class="form-control input-sm" ng-model="imgPerm" type="text"  required="" style="width: 50%">
@@ -47,7 +48,7 @@
             <input class="form-control input-lg" ng-model="imgDesc" type="text" required="" style="width: 50%">
           </label>
 
-          <button class="btn btn-default" ng-click="uploadFile()" ng-disabled="photoForm.$invalid">UPLOAD</button>
+          <button class="btn btn-default" ng-click="uploadFile(files)" ng-disabled="photoForm.$invalid">UPLOAD</button>
       </form>
 <!-- ng-disabled="photoForm.$invalid" -->
 
