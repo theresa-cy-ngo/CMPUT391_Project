@@ -22,22 +22,24 @@
 <body>
     <h1 style="text-align: center;">Display</h1>
 
+    <div class="selectedPic">
+      <image class="photoGallery" style="max-height:400px; max-width:400px; margin-right:5px; border:1px solid black;" ng-src={{selected.src}}></image>
+
+    </div>
+
     <div class="myPictures" style="margin-left: 20px; padding-top:10px;">
         <h3>My Pictures</h3>
-        <!-- <ng-gallery images="myPictures">
-        </ng-gallery> -->
+        <image class="photoGallery"  style="max-height:100px; max-width:100px; margin:5px 5px 5px 5px; border:1px solid black;" ng-repeat="image in myPictures" ng-src={{image.src}} ng-click="showImageDetails(image)"></image>
     </div>
 
     <div class="groupPictures" style="margin-left: 20px; padding-top:10px;">
         <h3>Group Pictures</h3>
-        <ng-gallery images="groupPictures">
-        </ng-gallery>
+        <image class="thumbGallery"  style="max-height:100px; max-width:100px; margin-right:5px; border:1px solid black;" ng-repeat="image in groupPictures" ng-src={{image.src}}></image>
+
     </div>
 
     <div class="popularPictures" style="margin-left: 20px; padding-top:10px;">
         <h3>Popular Pictures</h3>
-        <!-- <ng-gallery images="popularPictures">
-        </ng-gallery> -->
     </div>
 
 </body>

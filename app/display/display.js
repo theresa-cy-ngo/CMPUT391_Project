@@ -39,6 +39,10 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
        return thumb;
     };
 
+    $scope.showImageDetails = function (selectedImage){
+        console.log(selectedImage);
+    };
+
     // Gets the gallery for the user's uploaded images
     displayHandler.getPictures(usernameFromStorage, function(result){
         var index = 0;
@@ -51,9 +55,17 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
                     thumbString = result.data.thumbs[index],
                     thumb = parseThumbResult(thumbString);
 
-                image.src = "data:image/png;base64," + photo;
+                image.src = "data:image/jpeg;base64," + photo;
                 imageThumb.src = "data:image/png;base64," + thumb;
-                $scope.myPictures.push({thumb: image.src, img: image.src, description: result.data.rows[index][3]})
+                $scope.myPictures.push({src: image.src,
+                                        id: result.data.rows[index][0],
+                                        owner: result.data.rows[index][1],
+                                        permit: result.data.rows[index][2],
+                                        subject: result.data.rows[index][3],
+                                        place: result.data.rows[index][4],
+                                        timing: result.data.rows[index][5],
+                                        desc: result.data.rows[index][6]
+                                      });
             }
         };
     });
@@ -72,7 +84,9 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
 
                 image.src = "data:image/png;base64," + photo;
                 imageThumb.src = "data:image/png;base64," + thumb;
-                $scope.groupPictures.push({thumb: image.src, img: image.src, description: result.data.rows[index][3]})
+                // $scope.groupPictures.push({thumb: image.src, img: image.src, description: result.data.rows[index][3]})
+                $scope.groupPictures.push({src: image.src});
+
             }
         };
     });
