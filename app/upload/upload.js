@@ -162,6 +162,7 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload",
                   requestBody = getRequestBody(photoData[i].photo, photoData[i].thumb, ID+1+i);
                   uploadHandler.uploadFile(requestBody, function(result){
                      alert("uploaded file");
+                     window.history.back();
                    });
             }
       });

@@ -11,6 +11,9 @@ angular.module("myApp.home", ["ngRoute", "LocalStorageModule"])
     var usernameFromStorage,
         storageKey = "user";
 
+    // Hide the dataAnalysis button
+    $scope.dataAnalysis = false;
+
     function getItem(key) {
         return localStorageService.get(key);
     };
@@ -18,6 +21,13 @@ angular.module("myApp.home", ["ngRoute", "LocalStorageModule"])
     if(!getItem(storageKey)){
         //User has not logged in yet so redirect to login
         $location.url("/login");
+    }else{
+        usernameFromStorage = getItem(storageKey);
+    }
+
+    // If the username is "admin", show the button
+    if (usernameFromStorage == "admin"){
+      $scope.dataAnalysis = true;
     }
 
     $scope.groups = function() {
