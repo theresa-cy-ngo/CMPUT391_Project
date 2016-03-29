@@ -176,14 +176,46 @@ app.post("/groupid", function(req, res){
     );
 });
 
+
+
+app.post("/updatePhoto", function(req, res){
+  var DBQueryString =
+      "UPDATE IMAGES " +
+      "SET PERMITTED = :permitted1, SUBJECT = :subject1, PLACE = :place1, TIMING = TO_DATE (:timing1, 'yyyy/mm/dd'), DESCRIPTION = :desc1 " +
+      "WHERE PHOTO_ID = :photoid1",
+      DBQueryParam = {permitted1: req.body.permit,
+                      subject1: req.body.subject,
+                      place1: req.body.place,
+                      timing1: req.body.timing,
+                      desc1: req.body.desc,
+                      photoid1: req.body.photoid
+                    };
+
+      oracledb.getConnection(dbConfig, function (err, connection) {
+          if (err) {
+              connectionError(err, res);
+              return;
+          }
+          connection.execute(DBQueryString, DBQueryParam,
+              {autoCommit: true},
+              function (err, result) {
+                  if (err) {
+                      executeError(err, res);
+                  } else {
+                      res.send({success:true});
+                  }
+                  doRelease(connection);
+              }
+          );
+      });
+
+});
+
+
 //Based on code found here: https://github.com/oracle/node-oracledb/blob/master/doc/api.md#lobhandling
 app.post("/upload", function(req, res){
-  // console.log(req.body.timing);
     var DBQueryString =
-        // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, :timing, :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
-        // "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (7, 'test1', null, null, null, null, null, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
-//TO_DATE(timing, 'YYYY-MM-DD')
-"INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, TO_DATE (:timing, 'yyyy/mm/dd'), :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
+        "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, TO_DATE (:timing, 'yyyy/mm/dd'), :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
 
         DBQueryParam = {photo_id: req.body.photo_id,
                         owner_name: req.body.owner_name,
@@ -195,8 +227,6 @@ app.post("/upload", function(req, res){
                         lobbv: {type: oracledb.BLOB, dir: oracledb.BIND_OUT},
                         lobtn: {type: oracledb.BLOB, dir: oracledb.BIND_OUT}
                       };
-
-        console.log(req.body.timing);
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -808,39 +838,6 @@ getImages = function (row, index) {
   return deferred.promise;
 
 };
-
-// Sends edits of an image into the database
-app.post("/editImage", function(req, res){
-    var DBQueryString =
-        "UPDATE images " +
-        "SET permitted = :permitted, subject = :subject, place = :place, timing = TO_DATE (:timing, 'yyyy/mm/dd'), description = :desc " +
-        "WHERE photo_id = :photo_id" ,
-        DBQueryParam = {photo_id: req.query.photo_id,
-                        permitted: req.query.permitted,
-                        subject: req.query.subject,
-                        place: req.query.loc,
-                        timing: req.query.timing,
-                        desc: req.query.desc};
-                        
-    oracledb.getConnection(dbConfig, function (err, connection) {
-        if (err) {
-            connectionError(err, res);
-            return;
-        }
-       connection.execute(DBQueryString, DBQueryParam,
-           {autoCommit: true},
-           function (err, result) {
-               if (err) {
-                   executeError(err, res);
-               } else {
-                   res.send({success: true, results: result.rows});
-               }
-               doRelease(connection);
-            }
-        );
-    });
-});
-
 
 // Retrieves pictures that the user uploaded onto the database
 app.post("/getMyPictures", function(req, res){

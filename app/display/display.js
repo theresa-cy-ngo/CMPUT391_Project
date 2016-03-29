@@ -9,12 +9,14 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
 
 .controller("displayController", function($scope, $location, localStorageService, displayHandler) {
     var usernameFromStorage,
-        storageKey = "user";
+        storageKey = "user",
+        currentImage;
 
     // Initializes array of pictures
     $scope.myPictures = [];
     $scope.groupPictures = [];
     $scope.popularPictures = [];
+    $scope.selected;
 
     function getItem(key) {
         return localStorageService.get(key);
@@ -28,19 +30,27 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     }
 
     function parseImageResult (result){
-       var photo = result.slice(7, result.length-2);
+      //  var photo = result.slice(8, result.length-2);
+      var photo = result.slice(7, result.length-2);
+
        //console.log(photo);
        return photo;
     };
 
     function parseThumbResult (result){
        var thumb = result.slice(8, result.length-2);
-       //console.log(thumb);
        return thumb;
     };
 
+    $scope.editPhoto = function(){
+        displayHandler.curr_image = currentImage;
+        $location.url("/edit");
+    }
+
     $scope.showImageDetails = function (selectedImage){
-        console.log(selectedImage);
+      //UPDATE IMAGE TRACKING HERE
+        $scope.selected = selectedImage;
+        currentImage = selectedImage;
     };
 
     // Gets the gallery for the user's uploaded images
@@ -55,7 +65,9 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
                     thumbString = result.data.thumbs[index],
                     thumb = parseThumbResult(thumbString);
 
-                image.src = "data:image/jpeg;base64," + photo;
+                // image.src = "data:image/jpeg;base64," + photo;
+                image.src = "data:image/png;base64," + photo;
+
                 imageThumb.src = "data:image/png;base64," + thumb;
                 $scope.myPictures.push({src: image.src,
                                         id: result.data.rows[index][0],
@@ -85,7 +97,15 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
                 image.src = "data:image/png;base64," + photo;
                 imageThumb.src = "data:image/png;base64," + thumb;
                 // $scope.groupPictures.push({thumb: image.src, img: image.src, description: result.data.rows[index][3]})
-                $scope.groupPictures.push({src: image.src});
+                $scope.groupPictures.push({src: image.src,
+                                        id: result.data.rows[index][0],
+                                        owner: result.data.rows[index][1],
+                                        permit: result.data.rows[index][2],
+                                        subject: result.data.rows[index][3],
+                                        place: result.data.rows[index][4],
+                                        timing: result.data.rows[index][5],
+                                        desc: result.data.rows[index][6]
+                                      });
 
             }
         };

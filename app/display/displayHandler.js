@@ -34,7 +34,7 @@ angular.module("myApp.display.displayHandler", [])
       $http({
           url: SERVICE_BASE_URL + "getPopularPictures",
           method: "POST",
-          params: {userName: username}
+          data: {userName: username}
       })
       .then(function(result) {
           return callback(result);
@@ -44,11 +44,13 @@ angular.module("myApp.display.displayHandler", [])
       });
   };
 
-  this.editImage = function (photo_id, permitted, subject, loc, date, desc, callback) {
+  this.editImage = function (requestBody, callback) {
+      console.log(requestBody);
       $http({
-          url: SERVICE_BASE_URL + "editImage",
+          url: SERVICE_BASE_URL + "updatePhoto",
           method: "POST",
-          params: {photo_id: photo_id, permitted: permitted, subject: subject, loc: loc, timing: date, desc: desc}
+          data: requestBody
+          // {photoid: requestBody.photo_id, permit: requestBody.permitted, subject: requestBody.subject, place: requestBody.loc, timing: requestBody.date, desc: requestBody.desc}
       })
       .then(function(result) {
           return callback(result);

@@ -11,17 +11,8 @@ angular.module("myApp.edit", ["ngRoute", "LocalStorageModule", "ngFileUpload", "
     var usernameFromStorage,
         storageKey = "user",
         selected_image = displayHandler.curr_image;
-    // ** Need to make sure that the image passed through is actually called curr_image **
 
-    // Initialize the page with the pre-existing values
-    // May need to reformat this to format "yyyy/mm/dd" if original format doesn't work
-    var imageDate = new Date(selected_image.timing);
-    $scope.imgPerm = selected_image.permitted;
-    $scope.imgSubject = selected_image.subject;
-    $scope.imgLocation = selected_image.place;
-    $scope.imgWhen = imageDate;
-    $scope.imgDesc = selected_image.desc;
-
+    $scope.selected;
 
     function getItem(key) {
         return localStorageService.get(key);
@@ -32,6 +23,19 @@ angular.module("myApp.edit", ["ngRoute", "LocalStorageModule", "ngFileUpload", "
         $location.url("/login");
     }else{
         usernameFromStorage = getItem(storageKey);
+    }
+
+    if(!selected_image){
+        $location.url("/display");
+    }else {
+        var imageDate = new Date(selected_image.timing);
+        $scope.imgPerm = selected_image.permit;
+        $scope.imgSubject = selected_image.subject;
+        $scope.imgLocation = selected_image.place;
+        $scope.imgWhen = imageDate;
+        $scope.imgDesc = selected_image.desc;
+
+        $scope.selected = selected_image;
     }
 
     // Formats the date to be put into the database
@@ -48,22 +52,25 @@ angular.module("myApp.edit", ["ngRoute", "LocalStorageModule", "ngFileUpload", "
         }
         dateString = yyyy + "/" + mm + "/" + dd
         return dateString
-    }
+    };
+
 
     $scope.editImage = function() {
-        console.log("Editing image")
+        var requestBody = {
+                photoid : selected_image.id,
+                permit : $scope.imgPerm,
+                subject : $scope.imgSubject,
+                place : $scope.imgLocation,
+                desc : $scope.imgDesc,
+                timing : formatDate($scope.imgWhen)
+            };
 
-        var id = selected_image.id,
-            permitted = $scope.imgPerm,
-            subject = $scope.imgSubject,
-            location = $scope.imgLocation,
-            date = $scope.imgWhen,
-            desc = $scope.imgDesc;
-
-        date = formatDate(date);
-
-        uploadHandler.uploadFile(id, permitted, subject, location, date, desc, function(result){
-           alert("Edited Image");
+        displayHandler.editImage(requestBody, function(result){
+            if(result.status !== 200){
+              alert("Error trying to update. Please try again.")
+            }else{
+              alert("Edited Image");
+            }
         });
 
     };

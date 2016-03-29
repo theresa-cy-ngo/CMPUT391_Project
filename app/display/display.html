@@ -18,13 +18,34 @@
     <script type="text/javascript" src="bower_components/ngGallery/src/js/ngGallery.js"></script>
     <link rel="stylesheet" type="text/css" href="bower_components/ngGallery/src/css/ngGallery.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+    <style>
+      .ng-scope{
+        text-align: center;
+      }
+
+
+    </style>
+
+
 </head>
 <body>
     <h1 style="text-align: center;">Display</h1>
 
     <div class="selectedPic">
-      <image class="photoGallery" style="max-height:400px; max-width:400px; margin-right:5px; border:1px solid black;" ng-src={{selected.src}}></image>
+      <div class="photo" style="width: 50%; display: inline-block;">
+        <image class="selectedPhoto" style="max-height:400px; max-width:400px; margin-right:5px; border:1px solid black; margin-left:50px;" ng-src={{selected.src}}></image>
+      </div>
+      <div class="photoInfo" style="width: 45%; display: inline-block;">
+        <p ng-show="selected">Owner: {{selected.owner}}</p>
+        <p ng-show="selected">Subject: {{selected.subject}}</p>
+        <p ng-show="selected">Group ID: {{selected.permit}}</p>
+        <p ng-show="selected">Location: {{selected.place}}</p>
+        <p ng-show="selected">Date Taken: {{selected.timing}}</p>
+        <p ng-show="selected">Photo ID: {{selected.id}}</p>
+      </div>
 
+      <button type="button" class="btn btn-primary" style="margin-bottom:100px;" ng-click="editPhoto(photo)" ng-show="selected">Edit Photo</button>
     </div>
 
     <div class="myPictures" style="margin-left: 20px; padding-top:10px;">
@@ -34,7 +55,7 @@
 
     <div class="groupPictures" style="margin-left: 20px; padding-top:10px;">
         <h3>Group Pictures</h3>
-        <image class="thumbGallery"  style="max-height:100px; max-width:100px; margin-right:5px; border:1px solid black;" ng-repeat="image in groupPictures" ng-src={{image.src}}></image>
+        <image class="thumbGallery"  style="max-height:100px; max-width:100px; margin-right:5px; border:1px solid black;" ng-repeat="image in groupPictures" ng-src={{image.src}} ng-click="showImageDetails(image)"></image>
 
     </div>
 
