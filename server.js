@@ -782,28 +782,31 @@ getImages = function (row, index) {
   thumbnailBufferLength = 0;
 
   if (lob) {
-
+    // console.log("LOB " + util.inspect(lob, false, null));
         // When data comes in from the stream, add it to the buffer
         lob.on("data", function (chunk) {
             bufferLength = bufferLength + chunk.length;
             buffer = Buffer.concat([buffer, chunk], bufferLength);
+            // console.log("DATA " + bufferLength);
         });
         //When the data is finished coming in, change it to base 64 and add to result
         lob.on("end", function () {
             imageObj = buffer.toString("base64");
+            // console.log("END " + imageObj);
         });
         // When the stream closes, resolce the promsie
         lob.on("close", function (chunk) {
 
-            // console.log("CLOSE PHOTO + RESOLVE");
+            console.log("CLOSE PHOTO + RESOLVE");
 
             // Fulfill promise
             lobLoadingPhoto.resolve();
         });
         // Make sure we reject the promise when the stream fails so that we don't have a memory leak
-        lob.on("error", function () {
-            executeError(err, res);
+        lob.on("error", function (err) {
+            // executeError(err, res);
             // Reject promise
+            console.log("ERROR " + err);
             lobLoadingPhoto.reject();
         });
   }
@@ -824,7 +827,7 @@ getImages = function (row, index) {
         });
         // Make sure we reject the promise when the stream fails so that we don't have a memory leak
         thumbnailLob.on("error", function () {
-            executeError(err, res);
+            // executeError(err, res);
             // Reject promise
             lobLoadingThumb.reject();
         });
@@ -951,7 +954,7 @@ app.post("/getKeyResults", function(req, res){
     }
     DBQueryString = DBQueryString + ")"
 
-    console.log(DBQueryString);
+    // console.log(DBQueryString);
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -961,12 +964,32 @@ app.post("/getKeyResults", function(req, res){
        connection.execute(DBQueryString, DBQueryParam,
            {autoCommit: true},
            function (err, result) {
+               var imageArr = [];
+               var thumbArr = [];
                if (err) {
                    executeError(err, res);
                } else {
-                   res.send({success: true, results: result.rows});
+                //  console.log(util.inspect(result, false, null));
+
+                     result.rows.forEach(function(row, index, array){
+                      // console.log("ROW " + util.inspect(row, false, null));
+
+                         getImages(row).then(function(photoData){
+                             imageArr.push(photoData.imageObj);
+                             thumbArr.push(photoData.thumbObj);
+
+                             if(imageArr.length == result.rows.length){
+                                //  console.log("seding back");
+                                 doRelease(connection);
+                                 res.send({
+                                   rows:result.rows,
+                                   images: imageArr,
+                                   thumbs: thumbArr
+                                 });
+                             }
+                         });
+                    });
                }
-               doRelease(connection);
             }
         );
     });
@@ -983,9 +1006,9 @@ app.post("/getTimeResults", function(req, res){
         "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
         "AND (images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))",
         DBQueryParam = {userName: req.query.userName, startDate: req.query.timeStart, endDate: req.query.timeEnd};
-
-    console.log(DBQueryString);
-    console.log(DBQueryParam);
+    //
+    // console.log(DBQueryString);
+    // console.log(DBQueryParam);
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
             connectionError(err, res);
@@ -994,12 +1017,29 @@ app.post("/getTimeResults", function(req, res){
        connection.execute(DBQueryString, DBQueryParam,
            {autoCommit: true},
            function (err, result) {
+               var imageArr = [];
+               var thumbArr = [];
                if (err) {
-                   executeError(err, res);
+                   executeError(err, result);
                } else {
-                   res.send({success: true, results: result.rows});
+                   result.rows.forEach(function(row, index, array){
+                       getImages(row).then(function(photoData){
+                           imageArr.push(photoData.imageObj);
+                           thumbArr.push(photoData.thumbObj);
+
+                           if(imageArr.length == result.rows.length){
+                              //  console.log("seding back");
+                               doRelease(connection);
+                               res.send({
+                                 rows:result.rows,
+                                 images: imageArr,
+                                 thumbs: thumbArr
+                               });
+                           }
+                       });
+                  });
                }
-               doRelease(connection);
+
             }
         );
     });
@@ -1032,7 +1072,7 @@ app.post("/getKeyTimeResults", function(req, res){
     }
     DBQueryString = DBQueryString + ")"
 
-    console.log(DBQueryString);
+    // console.log(DBQueryString);
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -1042,12 +1082,28 @@ app.post("/getKeyTimeResults", function(req, res){
        connection.execute(DBQueryString, DBQueryParam,
            {autoCommit: true},
            function (err, result) {
+               var imageArr = [];
+               var thumbArr = [];
                if (err) {
                    executeError(err, res);
                } else {
-                   res.send({success: true, results: result.rows});
+                 result.rows.forEach(function(row, index, array){
+                    getImages(row).then(function(photoData){
+                           imageArr.push(photoData.imageObj);
+                           thumbArr.push(photoData.thumbObj);
+
+                           if(imageArr.length == result.rows.length){
+                              //  console.log("seding back");
+                               doRelease(connection);
+                               res.send({
+                                 rows:result.rows,
+                                 images: imageArr,
+                                 thumbs: thumbArr
+                               });
+                           }
+                       });
+                  });
                }
-               doRelease(connection);
             }
         );
     });
