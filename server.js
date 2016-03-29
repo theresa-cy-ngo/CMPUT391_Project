@@ -821,7 +821,7 @@ app.post("/editImage", function(req, res){
                         place: req.query.loc,
                         timing: req.query.timing,
                         desc: req.query.desc};
-                        
+
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
             connectionError(err, res);
