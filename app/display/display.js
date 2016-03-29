@@ -29,19 +29,6 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
         usernameFromStorage = getItem(storageKey);
     }
 
-    function parseImageResult (result){
-      //  var photo = result.slice(8, result.length-2);
-      var photo = result.slice(7, result.length-2);
-
-       //console.log(photo);
-       return photo;
-    };
-
-    function parseThumbResult (result){
-       var thumb = result.slice(8, result.length-2);
-       return thumb;
-    };
-
     $scope.editPhoto = function(){
         displayHandler.curr_image = currentImage;
         $location.url("/edit");
@@ -53,22 +40,42 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
         currentImage = selectedImage;
     };
 
+
+    getImageSrc = function (photoBase64) {
+        var gifString = "R0lGOD", //The base 64 representation of a Gif start with this string
+            pngString = "iVBORw",
+            photoString = photoBase64.substring(7,13),
+            formattedPhoto,
+            imageSrc;
+
+        if(photoString == gifString || photoString == pngString){
+            //photo is a gif
+            formattedPhoto = photoBase64.slice(7, photoBase64.length-2)
+            imageSrc = "data:image/gif;base64," + formattedPhoto;
+        }else {
+            //photo is a jpeg
+            formattedPhoto = photoBase64.slice(8, photoBase64.length-2)
+            imageSrc = "data:image/jpeg;base64," + formattedPhoto;
+        }
+
+        return imageSrc;
+
+    };
+
+
     // Gets the gallery for the user's uploaded images
     displayHandler.getPictures(usernameFromStorage, function(result){
         var index = 0;
         if (result.data.images) {
             for (index; index < result.data.images.length; index++){
                 var image = new Image(),
-                    photoString = result.data.images[index],
-                    photo = parseImageResult(photoString);
+                    photoString = result.data.images[index];
                 var imageThumb = new Image(),
-                    thumbString = result.data.thumbs[index],
-                    thumb = parseThumbResult(thumbString);
+                    thumbString = result.data.thumbs[index];
 
-                // image.src = "data:image/jpeg;base64," + photo;
-                image.src = "data:image/png;base64," + photo;
+                image.src = getImageSrc(photoString);
+                imageThumb.src = getImageSrc(thumbString);
 
-                imageThumb.src = "data:image/png;base64," + thumb;
                 $scope.myPictures.push({src: image.src,
                                         id: result.data.rows[index][0],
                                         owner: result.data.rows[index][1],
@@ -88,14 +95,12 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
         if (result.data.images) {
             for (index; index < result.data.images.length; index++){
                 var image = new Image(),
-                    photoString = result.data.images[index],
-                    photo = parseImageResult(photoString);
+                    photoString = result.data.images[index];
                 var imageThumb = new Image(),
-                    thumbString = result.data.thumbs[index],
-                    thumb = parseThumbResult(thumbString);
+                    thumbString = result.data.thumbs[index];
 
-                image.src = "data:image/png;base64," + photo;
-                imageThumb.src = "data:image/png;base64," + thumb;
+                image.src = getImageSrc(photoString);
+                imageThumb.src = getImageSrc(thumbString);
                 // $scope.groupPictures.push({thumb: image.src, img: image.src, description: result.data.rows[index][3]})
                 $scope.groupPictures.push({src: image.src,
                                         id: result.data.rows[index][0],

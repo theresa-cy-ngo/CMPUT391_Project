@@ -43,14 +43,6 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
         return dateString
     };
 
-    function parseImageResult (result){
-      //  var photo = result.slice(8, result.length-2);
-      var photo = result.slice(7, result.length-2);
-
-       //console.log(photo);
-       return photo;
-    };
-
     displayResults = function (photoResults, rowResults) {
       var image = new Image(),
           photoString,
@@ -59,9 +51,8 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
 
         for(var i = 0; i < photoResults.length; i++){
             photoString = photoResults[i];
-            photo = parseImageResult(photoString);
 
-            image.src = "data:image/png;base64," + photo;
+            image.src = getImageSrc(photoString);
             $scope.searchResults.push({src: image.src,
                                     id: rowResults[i][0],
                                     owner: rowResults[i][1],
@@ -73,6 +64,27 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
                                   });
         }
 
+
+    };
+
+    getImageSrc = function (photoBase64) {
+        var gifString = "R0lGOD", //The base 64 representation of a Gif start with this string
+            pngString = "iVBORw",
+            photoString = photoBase64.substring(7,13),
+            formattedPhoto,
+            imageSrc;
+
+        if(photoString == gifString || photoString == pngString){
+            //photo is a gif
+            formattedPhoto = photoBase64.slice(7, photoBase64.length-2)
+            imageSrc = "data:image/gif;base64," + formattedPhoto;
+        }else {
+            //photo is a jpeg
+            formattedPhoto = photoBase64.slice(8, photoBase64.length-2)
+            imageSrc = "data:image/jpeg;base64," + formattedPhoto;
+        }
+
+        return imageSrc;
 
     };
 

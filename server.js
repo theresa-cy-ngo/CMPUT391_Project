@@ -797,7 +797,7 @@ getImages = function (row, index) {
         // When the stream closes, resolce the promsie
         lob.on("close", function (chunk) {
 
-            console.log("CLOSE PHOTO + RESOLVE");
+            // console.log("CLOSE PHOTO + RESOLVE");
 
             // Fulfill promise
             lobLoadingPhoto.resolve();
