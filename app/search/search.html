@@ -40,20 +40,12 @@
             </div>
 
         </div>
+  </div>
 
-        <!-- <form name="searchForm">
+  <div class="searchResults">
 
-            <label class="searchLabel" for="keywordInput"> Keywords
-              <input class="form-control input-sm" ng-model="searchKey" type="text"  required="" style="width: 50%">
-            </label>
+    <image class="resultGallery"  style="max-height:100px; max-width:100px; margin:5px 5px 5px 5px; border:1px solid black;" ng-repeat="image in searchResults" ng-src={{image.src}}></image>
 
-            <label class="searchLabel" for="subjectInput"> Timeframe
-              <input class="form-control input-sm" ng-model="searchTime" type="text" required="" style="width: 50%">
-            </label>
-
-            <button class="btn btn-default" ng-click="search()">SEARCH</button>
-        </form>
-  <! ng-disabled="photoForm.$invalid" -->
 
   </div>
 

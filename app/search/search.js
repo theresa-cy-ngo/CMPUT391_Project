@@ -11,6 +11,8 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
     var usernameFromStorage,
         storageKey = "user";
 
+    $scope.searchResults = [];
+
     function getItem(key) {
         return localStorageService.get(key);
     };
@@ -39,10 +41,48 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
         }
         dateString = yyyy + "/" + mm + "/" + dd
         return dateString
-    }
+    };
+
+    function parseImageResult (result){
+      //  var photo = result.slice(8, result.length-2);
+      var photo = result.slice(7, result.length-2);
+
+       //console.log(photo);
+       return photo;
+    };
+
+    displayResults = function (photoResults, rowResults) {
+      var image = new Image(),
+          photoString,
+          photo;
+
+
+        for(var i = 0; i < photoResults.length; i++){
+            photoString = photoResults[i];
+            photo = parseImageResult(photoString);
+
+            image.src = "data:image/png;base64," + photo;
+            $scope.searchResults.push({src: image.src,
+                                    id: rowResults[i][0],
+                                    owner: rowResults[i][1],
+                                    permit: rowResults[i][2],
+                                    subject: rowResults[i][3],
+                                    place: rowResults[i][4],
+                                    timing: rowResults[i][5],
+                                    desc: rowResults[i][6]
+                                  });
+        }
+
+
+    };
+
+
 
     // Search function after the SEARCH button is pressed
     $scope.search = function() {
+      //clear results from previous searches
+      $scope.searchResults = [];
+
       // Only uses keyword
       var keywords = $scope.searchKey,
           keyArray = [];
@@ -50,7 +90,8 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
         keyArray = $.map(keywords.split(","), $.trim);
         console.log(keyArray);
         searchHandler.getKeyResults(usernameFromStorage, keyArray, function(result){
-          console.log(result.data);
+            console.log(result.data);
+            displayResults(result.data.images, result.data.rows);
         });
 
       // Only uses time
@@ -60,7 +101,8 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
         timeBegin = formatDate(timeBegin, 0);
         timeEnd = formatDate(timeEnd, 1);
         searchHandler.getTimeResults(usernameFromStorage, timeBegin, timeEnd, function(result){
-          console.log(result.data);
+            console.log(result.data);
+            displayResults(result.data.images, result.data.rows);
         });
 
       // Uses all fields
@@ -71,7 +113,8 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
         timeBegin = formatDate(timeBegin, 0);
         timeEnd = formatDate(timeEnd, 1);
         searchHandler.getKeyTimeResults(usernameFromStorage, keyArray, timeBegin, timeEnd, function(result){
-          console.log(result.data);
+            console.log(result.data);
+            displayResults(result.data.images, result.data.rows);
         });
 
       // All other inputs
