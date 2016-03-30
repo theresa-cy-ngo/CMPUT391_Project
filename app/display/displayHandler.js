@@ -30,6 +30,19 @@ angular.module("myApp.display.displayHandler", [])
       });
   };
 
+  this.getAdminPictures = function (callback) {
+      $http({
+          url: SERVICE_BASE_URL + "getAdminPictures",
+          method: "POST"
+      })
+      .then(function(result) {
+          return callback(result);
+      },
+      function(result) {
+          return callback(result);
+      });
+  };
+
   this.getPopularPictures = function (username, callback) {
       $http({
           url: SERVICE_BASE_URL + "getPopularPictures",

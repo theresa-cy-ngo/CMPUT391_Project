@@ -945,6 +945,50 @@ app.post("/getMyPictures", function(req, res){
     });
 });
 
+app.post("/getAdminPictures", function(req, res){
+  var DBQueryString =
+      "SELECT * " +
+      "FROM images ",
+      DBQueryParam = {};
+  oracledb.getConnection(dbConfig, function (err, connection) {
+      if (err) {
+          connectionError(err, res);
+          return;
+      }
+     connection.execute(DBQueryString, DBQueryParam,
+         function (err, result) {
+             var imageArr = [];
+             var thumbArr = [];
+             if (err) {
+                 executeError(err, res);
+             } else {
+                   result.rows.forEach(function(row, index, array){
+                         getImages(row).then(function(photoData){
+                             imageArr.push(photoData.imageObj);
+                             thumbArr.push(photoData.thumbObj);
+
+                             if(imageArr.length == result.rows.length){
+                                //  console.log("seding back");
+                                 doRelease(connection);
+                                 res.send({
+                                   rows:result.rows,
+                                   images: imageArr,
+                                   thumbs: thumbArr
+                                 });
+                             }
+                         });
+                  });
+              }
+          }
+      );
+  });
+
+
+});
+
+
+
+
 // Retrieves pictures that others uploaded onto the database
 app.post("/getGroupPictures", function(req, res){
     var DBQueryString =
