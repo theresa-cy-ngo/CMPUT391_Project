@@ -9,7 +9,8 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
 
 .controller("searchController", function($scope, $location, localStorageService, searchHandler) {
     var usernameFromStorage,
-        storageKey = "user";
+        storageKey = "user",
+        currentImage;
 
     $scope.searchResults = [];
 
@@ -41,6 +42,12 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
         }
         dateString = yyyy + "/" + mm + "/" + dd
         return dateString
+    };
+
+    $scope.showImageDetails = function (selectedImage){
+      //UPDATE IMAGE TRACKING HERE
+        $scope.selected = selectedImage;
+        currentImage = selectedImage;
     };
 
     displayResults = function (photoResults, rowResults) {

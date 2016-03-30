@@ -16,6 +16,20 @@
 </head>
 <body>
     <h1 style="text-align: center;">Search</h1>
+        <!-- <div class="selectedPic">
+            <div class="photo" style="width: 50%; display: inline-block;">
+              <image class="selectedPhoto" style="max-height:400px; max-width:400px; margin-right:5px; border:1px solid black; margin-left:50px;" ng-src={{selected.src}}></image>
+            </div>
+            <div class="photoInfo" style="width: 45%; display: inline-block;">
+              <p ng-show="selected">Owner: {{selected.owner}}</p>
+              <p ng-show="selected">Subject: {{selected.subject}}</p>
+              <p ng-show="selected">Group ID: {{selected.permit}}</p>
+              <p ng-show="selected">Location: {{selected.place}}</p>
+              <p ng-show="selected">Date Taken: {{selected.timing}}</p>
+              <p ng-show="selected">Photo ID: {{selected.id}}</p>
+            </div>
+        </div> -->
+
         <div style="padding-top: 20px">
             <div class="searchContainer" style="margin: 0 auto; width: 50%; text-align: center;">
                 <div class="form-group">
@@ -42,9 +56,23 @@
         </div>
   </div>
 
+  <div class="selectedPic">
+      <div class="photo" style="width: 50%; display: inline-block;">
+        <image class="selectedPhoto" style="max-height:400px; max-width:400px; margin-right:5px; border:1px solid black; margin-left:50px;" ng-src={{selected.src}}></image>
+      </div>
+      <div class="photoInfo" style="width: 45%; display: inline-block;">
+        <p ng-show="selected">Owner: {{selected.owner}}</p>
+        <p ng-show="selected">Subject: {{selected.subject}}</p>
+        <p ng-show="selected">Group ID: {{selected.permit}}</p>
+        <p ng-show="selected">Location: {{selected.place}}</p>
+        <p ng-show="selected">Date Taken: {{selected.timing}}</p>
+        <p ng-show="selected">Photo ID: {{selected.id}}</p>
+      </div>
+  </div>
+
   <div class="searchResults">
 
-    <image class="resultGallery"  style="max-height:100px; max-width:100px; margin:5px 5px 5px 5px; border:1px solid black;" ng-repeat="image in searchResults" ng-src={{image.src}}></image>
+    <image class="resultGallery"  style="max-height:100px; max-width:100px; margin:5px 5px 5px 5px; border:1px solid black;" ng-repeat="image in searchResults" ng-src={{image.src}} ng-click="showImageDetails(image)"></image>
 
 
   </div>
