@@ -17,6 +17,7 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     $scope.groupPictures = [];
     $scope.popularPictures = [];
     $scope.selected;
+    $scope.isOwner = false;
 
     function getItem(key) {
         return localStorageService.get(key);
@@ -37,6 +38,13 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     $scope.showImageDetails = function (selectedImage){
         $scope.selected = selectedImage;
         currentImage = selectedImage;
+
+        if(selectedImage.owner == usernameFromStorage){
+            $scope.isOwner = true;
+        }else{
+            $scope.isOwner = false;
+        }
+
         displayHandler.checkTracking(usernameFromStorage, currentImage.id, function(result){
             if (!result.data.results[0]) {
                 displayHandler.updateTracking(usernameFromStorage, currentImage.id, function(result){

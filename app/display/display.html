@@ -44,7 +44,7 @@
         <p ng-show="selected">Photo ID: {{selected.id}}</p>
       </div>
 
-      <button type="button" class="btn btn-primary" style="margin-bottom:100px;" ng-click="editPhoto(photo)" ng-show="selected">Edit Photo</button>
+      <button type="button" class="btn btn-primary" style="margin-bottom:100px;" ng-click="editPhoto(photo)" ng-show="isOwner">Edit Photo</button>
     </div>
 
     <div class="myPictures" style="margin-left: 20px; padding-top:10px;">
