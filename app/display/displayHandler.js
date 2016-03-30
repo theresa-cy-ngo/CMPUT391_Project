@@ -30,6 +30,19 @@ angular.module("myApp.display.displayHandler", [])
       });
   };
 
+  this.getAdminPictures = function (callback) {
+      $http({
+          url: SERVICE_BASE_URL + "getAdminPictures",
+          method: "POST"
+      })
+      .then(function(result) {
+          return callback(result);
+      },
+      function(result) {
+          return callback(result);
+      });
+  };
+
   this.getPopularPictures = function (username, callback) {
       $http({
           url: SERVICE_BASE_URL + "getPopularPictures",
@@ -86,6 +99,22 @@ angular.module("myApp.display.displayHandler", [])
       function(result) {
           return callback(result);
       });
+  };
+
+  this.deleteImage = function (photo_id, callback){
+        $http({
+            url: SERVICE_BASE_URL + "deleteImage",
+            method: "POST",
+            data: {photo_id: photo_id}
+        })
+        .then(function(result) {
+            return callback(result);
+        },
+        function(result) {
+        return callback(result);
+    });
+
+
   };
 
 });

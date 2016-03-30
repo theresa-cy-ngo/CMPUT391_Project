@@ -16,8 +16,10 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     $scope.myPictures = [];
     $scope.groupPictures = [];
     $scope.popularPictures = [];
+    $scope.adminPictures = [];
     $scope.selected;
     $scope.isOwner = false;
+    $scope.isAdmin = false;
 
     function getItem(key) {
         return localStorageService.get(key);
@@ -28,6 +30,11 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
         $location.url("/login");
     }else{
         usernameFromStorage = getItem(storageKey);
+        if(usernameFromStorage == "admin"){
+            $scope.isAdmin = true;
+        }else{
+            $scope.isAdmin = false;
+        }
     }
 
     $scope.editPhoto = function(){
@@ -51,7 +58,7 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
                     console.log("Update complete");
                 });
             } else {
-                console.log("Data is already in the system");
+                  console.log("Data is already in the system");
             };
         });
     };
@@ -82,7 +89,7 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     // Gets the gallery for the user's uploaded images
     displayHandler.getPictures(usernameFromStorage, function(result){
         var index = 0;
-        if (result.data.images) {
+        if (result.data.images.length > 0) {
             for (index; index < result.data.images.length; index++){
                 var image = new Image(),
                     photoString = result.data.images[index];
@@ -105,10 +112,39 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
         };
     });
 
+    displayHandler.getAdminPictures(function(result){
+        var index = 0;
+
+        if (result.data.images.length > 0) {
+            for (index; index < result.data.images.length; index++){
+                var image = new Image(),
+                    photoString = result.data.images[index];
+                var imageThumb = new Image(),
+                    thumbString = result.data.thumbs[index];
+
+                image.src = getImageSrc(photoString);
+                imageThumb.src = getImageSrc(thumbString);
+
+                $scope.adminPictures.push({src: image.src,
+                                        id: result.data.rows[index][0],
+                                        owner: result.data.rows[index][1],
+                                        permit: result.data.rows[index][2],
+                                        subject: result.data.rows[index][3],
+                                        place: result.data.rows[index][4],
+                                        timing: result.data.rows[index][5],
+                                        desc: result.data.rows[index][6]
+                                      });
+            }
+        };
+    });
+
+
+
+
     // Retrieves the gallery for the user's group and public images
     displayHandler.getGroupPictures(usernameFromStorage, function(result){
         var index = 0;
-        if (result.data.images) {
+        if (result.data.images.length > 0) {
             for (index; index < result.data.images.length; index++){
                 var image = new Image(),
                     photoString = result.data.images[index];
