@@ -45,9 +45,17 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
     };
 
     $scope.showImageDetails = function (selectedImage){
-      //UPDATE IMAGE TRACKING HERE
-        $scope.selected = selectedImage;
-        currentImage = selectedImage;
+      $scope.selected = selectedImage;
+      currentImage = selectedImage;
+      searchHandler.checkTracking(usernameFromStorage, currentImage.id, function(result){
+          if (!result.data.results[0]) {
+              searchHandler.updateTracking(usernameFromStorage, currentImage.id, function(result){
+                  console.log("Update complete");
+              });
+          } else {
+              console.log("Data is already in the system");
+          };
+      });
     };
 
     displayResults = function (photoResults, rowResults) {

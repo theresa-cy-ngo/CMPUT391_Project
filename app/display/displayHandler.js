@@ -60,4 +60,32 @@ angular.module("myApp.display.displayHandler", [])
       });
   };
 
+  this.checkTracking = function (username, photo_id, callback) {
+      $http({
+          url: SERVICE_BASE_URL + "checkTracking",
+          method: "POST",
+          params: {userName: username, photo_id: photo_id}
+      })
+      .then(function(result) {
+          return callback(result);
+      },
+      function(result) {
+          return callback(result);
+      });
+  };
+
+  this.updateTracking = function (username, photo_id, callback) {
+      $http({
+          url: SERVICE_BASE_URL + "updateTracking",
+          method: "POST",
+          params: {userName: username, photo_id: photo_id}
+      })
+      .then(function(result) {
+          return callback(result);
+      },
+      function(result) {
+          return callback(result);
+      });
+  };
+
 });

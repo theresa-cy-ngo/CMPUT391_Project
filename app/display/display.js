@@ -35,9 +35,17 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     }
 
     $scope.showImageDetails = function (selectedImage){
-      //UPDATE IMAGE TRACKING HERE
         $scope.selected = selectedImage;
         currentImage = selectedImage;
+        displayHandler.checkTracking(usernameFromStorage, currentImage.id, function(result){
+            if (!result.data.results[0]) {
+                displayHandler.updateTracking(usernameFromStorage, currentImage.id, function(result){
+                    console.log("Update complete");
+                });
+            } else {
+                console.log("Data is already in the system");
+            };
+        });
     };
 
 

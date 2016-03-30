@@ -1141,6 +1141,62 @@ app.post("/getKeyTimeResults", function(req, res){
     });
 });
 
+// Checks if the username already has tracking for the image in the database
+app.post("/checkTracking", function(req, res){
+    var DBQueryString =
+        "SELECT * " +
+        "FROM image_tracking " +
+        "WHERE photo_id = :photo_id AND user_name = :userName" ,
+        DBQueryParam = {userName: req.query.userName, photo_id: req.query.photo_id};
+
+    console.log(DBQueryString);
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
+// Inserts a new image tracking into the database
+app.post("/updateTracking", function(req, res){
+    var DBQueryString =
+        "INSERT INTO image_tracking " +
+        "(PHOTO_ID, USER_NAME) " +
+        "VALUES (:photo_id, :userName)" ,
+        DBQueryParam = {userName: req.query.userName, photo_id: req.query.photo_id};
+
+    console.log(DBQueryString);
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
 //Disconnect from Oracle
 function doRelease(connection)
 {
