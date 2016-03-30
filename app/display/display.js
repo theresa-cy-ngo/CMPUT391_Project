@@ -51,7 +51,7 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
                     console.log("Update complete");
                 });
             } else {
-                console.log("Data is already in the system");
+                  console.log("Data is already in the system");
             };
         });
     };

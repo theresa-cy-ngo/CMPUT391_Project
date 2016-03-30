@@ -54,6 +54,20 @@ angular.module("myApp.edit", ["ngRoute", "LocalStorageModule", "ngFileUpload", "
         return dateString
     };
 
+    $scope.deleteImage = function () {
+
+      displayHandler.deleteImage(selected_image.id, function(result){
+          if(result.status !== 200){
+            alert("Error trying to delete. Please try again.")
+          }else{
+            alert("Deleted Image");
+            $location.url("/display");
+          }
+      });
+
+
+    };
+
 
     $scope.editImage = function() {
         var requestBody = {
@@ -65,7 +79,7 @@ angular.module("myApp.edit", ["ngRoute", "LocalStorageModule", "ngFileUpload", "
                 timing : formatDate($scope.imgWhen)
             };
 
-        displayHandler.editImage(requestBody, function(result){
+        displayHandler.editImage(selected_image, function(result){
             if(result.status !== 200){
               alert("Error trying to update. Please try again.")
             }else{

@@ -653,6 +653,33 @@ app.route("/groups")
     });
 
 
+app.post("/deleteImage", function(req, res){
+  var DBQueryString_tracking = "DELETE from IMAGE_TRACKING WHERE PHOTO_ID = :photo_id; ",
+      DBQueryString_images = "DELETE from IMAGES WHERE PHOTO_ID = :photo_id; " ,
+      DBQueryString_total = "BEGIN\n" + DBQueryString_tracking + DBQueryString_images + "END;",
+      DBQueryParam = {photo_id: req.body.photo_id};
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+           connection.execute(DBQueryString_total, DBQueryParam,
+               {autoCommit: true},
+               function (err, result) {
+                  //  console.log(util.inspect(result, {showHidden: false, depth: null}));
+                   if (err) {
+                       executeError(err, res);
+                   } else {
+                       res.send({success: true});
+                    }
+                    doRelease(connection);
+                }
+            );
+       });
+
+});
+
 
 app.route("/register")
     .get(function (req, res) {
@@ -1178,7 +1205,7 @@ app.post("/checkTracking", function(req, res){
         "WHERE photo_id = :photo_id AND user_name = :userName" ,
         DBQueryParam = {userName: req.query.userName, photo_id: req.query.photo_id};
 
-    console.log(DBQueryString);
+    // console.log(DBQueryString);
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
             connectionError(err, res);
@@ -1206,7 +1233,7 @@ app.post("/updateTracking", function(req, res){
         "VALUES (:photo_id, :userName)" ,
         DBQueryParam = {userName: req.query.userName, photo_id: req.query.photo_id};
 
-    console.log(DBQueryString);
+    // console.log(DBQueryString);
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
             connectionError(err, res);
