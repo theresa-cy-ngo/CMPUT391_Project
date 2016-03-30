@@ -32,6 +32,8 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
         usernameFromStorage = getItem(storageKey);
         if(usernameFromStorage == "admin"){
             $scope.isAdmin = true;
+        }else{
+            $scope.isAdmin = false;
         }
     }
 
@@ -87,7 +89,7 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     // Gets the gallery for the user's uploaded images
     displayHandler.getPictures(usernameFromStorage, function(result){
         var index = 0;
-        if (result.data.images) {
+        if (result.data.images.length > 0) {
             for (index; index < result.data.images.length; index++){
                 var image = new Image(),
                     photoString = result.data.images[index];
@@ -112,7 +114,8 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
 
     displayHandler.getAdminPictures(function(result){
         var index = 0;
-        if (result.data.images) {
+
+        if (result.data.images.length > 0) {
             for (index; index < result.data.images.length; index++){
                 var image = new Image(),
                     photoString = result.data.images[index];
@@ -141,7 +144,7 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
     // Retrieves the gallery for the user's group and public images
     displayHandler.getGroupPictures(usernameFromStorage, function(result){
         var index = 0;
-        if (result.data.images) {
+        if (result.data.images.length > 0) {
             for (index; index < result.data.images.length; index++){
                 var image = new Image(),
                     photoString = result.data.images[index];
