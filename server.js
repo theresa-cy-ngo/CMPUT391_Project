@@ -966,18 +966,29 @@ app.post("/getKeyResults", function(req, res){
     var DBQueryString =
         "SELECT * " +
         "FROM images " +
-        "WHERE (images.permitted IN " +
-        "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
-        "OR images.permitted = 1 OR (images.permitted = 2 AND images.owner_name = :userName)) " +
-        "AND (",
+        "WHERE ",
         DBSearchString = "",
         DBQueryParam = {userName: req.query.userName};
+
+    // If the user is not an admin, add on the permission restrictions
+    if (req.query.userName != "admin"){
+      DBQueryString = DBQueryString + "(images.permitted IN " +
+                                      "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
+                                      "OR images.permitted = 1 " +
+                                      "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
+                                      "AND ";
+    } else {
+      DBQueryParam = {};
+    };
+
+    // Add the bracket to the query for searching the keywords
+    DBQueryString = DBQueryString + "(";
 
     var keywords = req.query.keywords
     var index = 0
     for (index; index < keywords.length; index++) {
         key = keywords[index];
-        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' "
+        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.place LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' ";
         if (index != 0) {
           DBQueryString = DBQueryString + "OR" + DBSearchString
         } else {
@@ -1032,15 +1043,24 @@ app.post("/getTimeResults", function(req, res){
     var DBQueryString =
         "SELECT * " +
         "FROM images " +
-        "WHERE  (images.permitted IN " +
-        "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
-        "OR images.permitted = 1 " +
-        "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
-        "AND (images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))",
+        "WHERE ",
         DBQueryParam = {userName: req.query.userName, startDate: req.query.timeStart, endDate: req.query.timeEnd};
-    //
+
+    // If the user is not an admin, add on the permission restrictions
+    if (req.query.userName != "admin"){
+      DBQueryString = DBQueryString + "(images.permitted IN " +
+                                      "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
+                                      "OR images.permitted = 1 " +
+                                      "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
+                                      "AND ";
+    } else {
+      DBQueryParam = {startDate: req.query.timeStart, endDate: req.query.timeEnd};
+    };
+
+    DBQueryString = DBQueryString + "(images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))";
+
     // console.log(DBQueryString);
-    // console.log(DBQueryParam);
+
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
             connectionError(err, res);
@@ -1082,20 +1102,29 @@ app.post("/getKeyTimeResults", function(req, res){
     var DBQueryString =
         "SELECT * " +
         "FROM images " +
-        "WHERE  (images.permitted IN " +
-        "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
-        "OR images.permitted = 1 " +
-        "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
-        "AND (images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))" +
-        "AND (",
+        "WHERE ",
         DBSearchString = "",
         DBQueryParam = {userName: req.query.userName, startDate: req.query.timeStart, endDate: req.query.timeEnd};
+
+    // If the user is not an admin, add on the permission restrictions
+    if (req.query.userName != "admin"){
+      DBQueryString = DBQueryString + "(images.permitted IN " +
+                                      "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
+                                      "OR images.permitted = 1 " +
+                                      "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
+                                      "AND ";
+    } else {
+      DBQueryParam = {startDate: req.query.timeStart, endDate: req.query.timeEnd};
+    };
+
+    DBQueryString = DBQueryString + "(images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))" +
+                                    "AND (";
 
     var keywords = req.query.keywords
     var index = 0
     for (index; index < keywords.length; index++) {
         key = keywords[index];
-        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' "
+        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.place LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' ";
         if (index != 0) {
           DBQueryString = DBQueryString + "OR" + DBSearchString
         } else {
