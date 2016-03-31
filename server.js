@@ -4,7 +4,7 @@ var express = require('express'),
     app = express(),
     http = require('http'),
     oracledb = require('oracledb'),
-    dbConfig = require('./dbconfig.js'),
+    // dbConfig = require('./dbconfig.js'),
     bodyParser = require('body-parser'),
     cookieParser = require("cookie-parser"),
     ejs = require('ejs'),
@@ -15,6 +15,8 @@ var express = require('express'),
     stream = require("stream"),
     Q = require("q");
 
+var dbConfig = {user: "jwoo", password: "", connectString: "localhost:1525/CRS"};
+//for lab machines, change connectString to "CRS"
 
 
 
@@ -72,8 +74,6 @@ process.on('SIGINT', function() {
 
 
 app.post("/login", function (req, res) {
-    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
-
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
                 connectionError(err, res);
