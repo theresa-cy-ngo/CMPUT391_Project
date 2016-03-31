@@ -29,6 +29,7 @@ angular.module("myApp.displayGroups", ["ngRoute", "LocalStorageModule", "myApp.g
         groupsHandler.getMembers(groupID, function(result){
             var index = 0;
             if(result.data.success){
+              console.log(result.data)
                 for(index; index < result.data.results.length; index++){
                     date_added = result.data.results[index][1];
                     var date_var = new Date(date_added)
@@ -52,11 +53,35 @@ angular.module("myApp.displayGroups", ["ngRoute", "LocalStorageModule", "myApp.g
         // console.log($scope.groups);
     }
 
+    function getFormattedDate () {
+        var today = new Date(),
+            formattedDate,
+            month,
+            weekday,
+            day,
+            year,
+            monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"],
+            daysOfWeek = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        month = monthNames[today.getMonth()];
+        weekday = daysOfWeek[today.getDay()];
+        day = today.getDate();
+        year = today.getFullYear();
+
+        formattedDate = weekday + " " + month + " " + day + " " + year;
+
+        return formattedDate;
+
+    };
+
     $scope.addMember = function () {
         if($scope.addMemberName){
             groupsHandler.addMember(selected_group.id, $scope.addMemberName, function(result){
+                var currentDate = getFormattedDate();
+
                 if(result.data.success){
-                    $scope.groups.push({"name": $scope.addMemberName, "date": selected_group.id});
+                    console.log(result.data);
+                    $scope.groups.push({"name": $scope.addMemberName, "date": currentDate});
                 }else{
                     alert("Error adding member. Please try again with a valid username.");
                 }
