@@ -138,6 +138,34 @@ angular.module("myApp.display", ["ngRoute", "LocalStorageModule", "myApp.display
         };
     });
 
+    displayHandler.getPopularPictures(function(result){
+      var index = 0;
+
+      if (result.data.images.length > 0) {
+          for (index; index < result.data.images.length; index++){
+              var image = new Image(),
+                  photoString = result.data.images[index];
+              var imageThumb = new Image(),
+                  thumbString = result.data.thumbs[index];
+
+              image.src = getImageSrc(photoString);
+              imageThumb.src = getImageSrc(thumbString);
+
+              $scope.popularPictures.push({src: image.src,
+                                      id: result.data.rows[index][0],
+                                      owner: result.data.rows[index][1],
+                                      permit: result.data.rows[index][2],
+                                      subject: result.data.rows[index][3],
+                                      place: result.data.rows[index][4],
+                                      timing: result.data.rows[index][5],
+                                      desc: result.data.rows[index][6]
+                                    });
+          }
+      };
+
+
+    });
+
 
 
 

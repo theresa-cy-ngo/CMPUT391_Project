@@ -60,6 +60,8 @@
 
     <div class="popularPictures" style="margin-left: 20px; padding-top:10px;">
         <h3>Popular Pictures</h3>
+        <image class="photoGallery"  style="max-height:100px; max-width:100px; margin-right:5px; border:1px solid black;" ng-repeat="image in popularPictures" ng-src={{image.src}} ng-click="showImageDetails(image)"></image>
+
     </div>
 
     <div class="adminPictures" ng-show="isAdmin" style="margin-left: 20px; padding-top:10px;">
