@@ -1297,6 +1297,89 @@ app.post("/updateTracking", function(req, res){
     });
 });
 
+// Retrieves OLAP data analysis
+app.post("/analysis", function(req, res){
+    var DBQueryString =
+        "SELECT " ,
+        DBQueryParam = {username: req.body.username,
+                        timeStart: req.body.timeStart,
+                        timeEnd: req.body.timeEnd};
+
+    var timeframe = req.body.timeframe,
+        username =  req.body.username,
+        subject =  req.body.subject,
+        timeStart =  req.body.timeStart,
+        timeEnd =  req.body.timeEnd;
+
+    if (timeframe == "yearly") {
+        DBQueryString += "to_char(trunc(timing,'yy'), 'YYYY') AS " + '"Year", ';
+    } else if (timeframe == "monthly") {
+        DBQueryString += "to_char(trunc(timing,'MM'), 'YYYY-MM') AS " + '"Month", ';
+    } else if (timeframe == "weekly") {
+        DBQueryString += "to_char(NEXT_DAY(timing, 'SAT'), 'YYYY-MM-DD') AS " + '"Week", ';
+    };
+
+    DBQueryString += "COUNT(photo_id) " +
+                     "FROM data_analysis ";
+
+    // Add WHERE clause if restrictions are required
+    if (username || subject || timeStart){
+        DBQueryString += "WHERE "
+    }
+
+    // Remove username from parameters if it is undefined
+    if (!username){
+        delete DBQueryParam.username;
+    } else {
+        DBQueryString += "(user_name = :username) "
+        if (subject || timeStart){
+            DBQueryString += "AND "
+        }
+    }
+
+    if (subject){
+        DBQueryString += "(subject LIKE '%" + subject + "%') "
+        if (timeStart){
+            DBQueryString += "AND "
+        }
+    }
+
+    if (!timeStart){
+        delete DBQueryParam.timeStart;
+        delete DBQueryParam.timeEnd;
+    } else {
+        DBQueryString += "(timing BETWEEN TO_DATE (:timeStart, 'yyyy/mm/dd') AND TO_DATE (:timeEnd, 'yyyy/mm/dd')) "
+    }
+
+    if (timeframe == "yearly") {
+        DBQueryString += "GROUP BY CUBE(to_char(trunc(timing,'yy'), 'YYYY'))";
+    } else if (timeframe == "monthly") {
+        DBQueryString += "GROUP BY CUBE(to_char(trunc(timing,'MM'), 'YYYY-MM'))";
+    } else if (timeframe == "weekly") {
+        DBQueryString += "GROUP BY CUBE(to_char(NEXT_DAY(timing, 'SAT'), 'YYYY-MM-DD'))";
+    };
+
+    console.log(DBQueryString);
+    console.log(DBQueryParam);
+    oracledb.getConnection(dbConfig, function (err, connection) {
+        if (err) {
+            connectionError(err, res);
+            return;
+        }
+       connection.execute(DBQueryString, DBQueryParam,
+           {autoCommit: true},
+           function (err, result) {
+               if (err) {
+                   executeError(err, res);
+               } else {
+                   res.send({success: true, results: result.rows});
+               }
+               doRelease(connection);
+            }
+        );
+    });
+});
+
 //Disconnect from Oracle
 function doRelease(connection)
 {

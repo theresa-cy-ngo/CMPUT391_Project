@@ -15,8 +15,70 @@
     <script src="bower_components/angular/angular.js"></script>
 </head>
 <body>
-    <h1 style="text-align: center;">Analysis</h1>
+    <h1 style="text-align: center">Analysis</h1>
+    <div style="margin-left: 40px">
+        <h5 style="margin-top: 30px">Enter the report options as required.</h5>
+        <form name="reportOptions">
+            <div style="margin-left: 20px;">
+                <label style="margin-right: 10px; font-weight: normal">Username: </label>
+                <input type="text" ng-model="checkUser" placeholder="Enter one username">
+            </div>
+            <div style="margin-left: 20px">
+                <label style="margin-right: 28px; font-weight: normal">Subject: </label>
+                <input type="text" ng-model="checkSubject" placeholder="Enter one subject">
+            </div>
+            <div style="margin-left: 20px">
+                <label style="margin-top: 4px; font-weight: normal">Timeframe: </label>
+                <div style="margin-left: 20px; padding-top:1px">
+                <md-input-container>
+                    <label style="margin-right: 17px; font-weight: normal">Start Date: </label>
+                    <input ng-model="analyseTimeBegin" type="date">
+                </md-input-container>
+                </div>
+                <div style="margin-left: 20px">
+                <md-input-container>
+                    <label style="margin-right: 22px; font-weight: normal">End Date: </label>
+                    <input ng-model="analyseTimeEnd" type="date">
+                </md-input-container>
+                </div>
+                <div style="margin-left: 20px">
+                    <input type="radio" value="weekly" name="timeframe" ng-model="timeframe" required> Weekly
+                </div>
+                <div style="margin-left: 20px">
+                    <input type="radio" value="monthly" name="timeframe" ng-model="timeframe" required> Monthly
+                </div>
+                <div style="margin-left: 20px">
+                    <input type="radio" value="yearly" name="timeframe" ng-model="timeframe" required> Yearly
+                </div>
+                <div style="margin-left: 20px">
+                    <input type="radio" value="none" name="timeframe" ng-model="timeframe" required> None
+                </div>
+            </div>
+            <div style="margin-top: 20px">
+            <button class="btn btn-default" ng-click="generate()" ng-disabled="reportOptions.$invalid">GENERATE</button>
+            </div>
+        </form>
 
-
+        <div ng-show="resultTable">
+            <table class="table" style="margin-left: 20px; width: 60%; margin-top: 20px">
+                <thead>
+                    <tr class="tableHeader">
+                        <th> {{dateHeader}} </th>
+                        <th style="text-align: center"> Number of Images </th>
+                    </tr>
+                </thread>
+                <tbody>
+                    <tr ng-repeat="row in table">
+                		<td>
+                        {{row.date}}
+                		</td>
+                    <td style="text-align: center">
+                        {{row.number}}
+                		</td>
+                	</tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
 </html>
