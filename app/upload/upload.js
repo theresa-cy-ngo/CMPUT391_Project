@@ -150,7 +150,11 @@ angular.module("myApp.upload", ["ngRoute", "LocalStorageModule", "ngFileUpload",
                     uploadHandler.getID(function(result){
                         var latestID;
                         if(result.data.success){
-                            latestID = result.data.result[0][0];
+                            if(result.data.result.length == 0){
+                              latestID = 1;
+                            }else {
+                              latestID = result.data.result[0][0];
+                            }
                             deferred.resolve(latestID);
                         }
                     });

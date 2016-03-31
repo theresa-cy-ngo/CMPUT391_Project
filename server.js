@@ -945,6 +945,48 @@ app.post("/getMyPictures", function(req, res){
     });
 });
 
+app.post("/getPopularPictures", function(req, res){
+  var DBQueryString =
+      "select * from images where photo_id IN (SELECT photo_id from (select tr.photo_id, COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id group by tr.photo_id ORDER BY photo_count DESC ) where photo_count IN (select distinct COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id group by tr.photo_id order by photo_count DESC FETCH FIRST 5 ROWS ONLY))",
+      DBQueryParam = {};
+  oracledb.getConnection(dbConfig, function (err, connection) {
+      if (err) {
+          connectionError(err, res);
+          return;
+      }
+     connection.execute(DBQueryString, DBQueryParam,
+         function (err, result) {
+             var imageArr = [];
+             var thumbArr = [];
+             if (err) {
+                 executeError(err, res);
+             } else {
+                   result.rows.forEach(function(row, index, array){
+                         getImages(row).then(function(photoData){
+                             imageArr.push(photoData.imageObj);
+                             thumbArr.push(photoData.thumbObj);
+
+                             if(imageArr.length == result.rows.length){
+                                //  console.log("seding back");
+                                 doRelease(connection);
+                                 res.send({
+                                   rows:result.rows,
+                                   images: imageArr,
+                                   thumbs: thumbArr
+                                 });
+                             }
+                         });
+                  });
+              }
+          }
+      );
+  });
+
+
+});
+
+
+
 app.post("/getAdminPictures", function(req, res){
   var DBQueryString =
       "SELECT * " +
