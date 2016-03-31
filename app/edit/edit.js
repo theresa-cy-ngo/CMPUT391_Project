@@ -79,7 +79,7 @@ angular.module("myApp.edit", ["ngRoute", "LocalStorageModule", "ngFileUpload", "
                 timing : formatDate($scope.imgWhen)
             };
 
-        displayHandler.editImage(selected_image, function(result){
+        displayHandler.editImage(requestBody, function(result){
             if(result.status !== 200){
               alert("Error trying to update. Please try again.")
             }else{
