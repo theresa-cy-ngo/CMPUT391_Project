@@ -1,21 +1,5 @@
 #!/bin/env node
 
-
-//*******************************************
-// Server side code 
-// Here are the POSTS and GETS that connect to 
-// Oracle DB
-//
-// 
-//
-//
-//
-//
-//
-//*********************************************
-
-
-
 var express = require('express'),
     app = express(),
     http = require('http'),
@@ -31,7 +15,7 @@ var express = require('express'),
     stream = require("stream"),
     Q = require("q");
 
-var dbConfig = {user: "jwoo", password: "Pikachu1202jw", connectString: "CRS"};
+var dbConfig = {user: "jwoo", password: "Pikachu1202jw", connectString: "localhost:1525/CRS"};
 //for lab machines, change connectString to "CRS"
 
 
@@ -88,8 +72,7 @@ process.on('SIGINT', function() {
 });
 
 
-// Post for login info. Checks to see if a user exists. If they have a valid username/password
-// Return success
+
 app.post("/login", function (req, res) {
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
@@ -127,9 +110,6 @@ app.post("/login", function (req, res) {
     );
 });
 
-
-// Get the last photo ID in order to increment
-// to make a new ID
 app.post("/photoid", function(req, res){
   var DBQueryString;
 
@@ -159,8 +139,7 @@ app.post("/photoid", function(req, res){
         });
 });
 
-// Get the last group ID in order to increment
-// to make a new ID
+
 app.post("/groupid", function(req, res){
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
@@ -199,7 +178,6 @@ app.post("/groupid", function(req, res){
 
 
 
-//Update a photo's information based on form data
 app.post("/updatePhoto", function(req, res){
   var DBQueryString =
       "UPDATE IMAGES " +
@@ -234,9 +212,7 @@ app.post("/updatePhoto", function(req, res){
 });
 
 
-// Based on code found here: https://github.com/oracle/node-oracledb/blob/master/doc/api.md#lobhandling
-// Translate photo data to base 64 and write to empty blob
-// See project report for more details
+//Based on code found here: https://github.com/oracle/node-oracledb/blob/master/doc/api.md#lobhandling
 app.post("/upload", function(req, res){
     var DBQueryString =
         "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, TO_DATE (:timing, 'yyyy/mm/dd'), :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
@@ -348,7 +324,7 @@ app.post("/upload", function(req, res){
                     });
 
                     lob.on('finish', function() {
-                        // console.log("lob.on 'finish' event");
+                        console.log("lob.on 'finish' event");
                         connection.commit( function(err) {
                             if (err)
                               console.error(err.message);
@@ -370,8 +346,105 @@ app.post("/upload", function(req, res){
    });
 });
 
-//GET : return the group members based on group id
-//POST : insert a new row into the groups table from form data
+//testing
+app.get("/upload", function(req, res){
+    var DBQueryString =
+        "select * from images where photo_id = :photoid",
+        DBQueryParam = {photoid: req.query.photoID};
+
+
+        oracledb.getConnection(dbConfig, function (err, connection) {
+            if (err) {
+                connectionError(err, res);
+                return;
+            }
+           connection.execute(DBQueryString, DBQueryParam,
+               {autoCommit: true},
+               function (err, result) {
+                   var lob, buffer, bufferLength;
+                        // Array of promises
+                        var lobLoading = [];
+                        var lobPromises = [];
+                   if (err) {
+                       executeError(err, res);
+                   } else {
+                       result.rows.forEach(function (row, index, array) {
+                            lob = row[row.length-1];
+                            thumbnailLob = row[row.length-2];
+                            buffer = new Buffer(0);
+                            bufferLength = 0;
+                            thumbnailBuffer = new Buffer(0);
+                            thumbnailBufferLength = 0;
+                            if (lob) {
+                                // Add promise at index
+                                // Have to use index*2 because each row has two blobs
+                                // Q sucks, so we have to make an array of the deferreds and the promises...
+                                lobLoading[index*2] = Q.defer();
+                                lobPromises[index*2] = lobLoading[index*2].promise;
+                                // When data comes in from the stream, add it to the buffer
+                                lob.on("data", function (chunk) {
+                                    bufferLength = bufferLength + chunk.length;
+                                    buffer = Buffer.concat([buffer, chunk], bufferLength);
+                                });
+                                //When the data is finished coming in, change it to base 64 and add to result
+                                lob.on("end", function () {
+                                    result.rows[index][row.length-1] = buffer.toString("base64");
+                                });
+                                // When the stream closes, resolce the promsie
+                                lob.on("close", function (chunk) {
+                                    // Fulfill promise
+                                    lobLoading[index*2].resolve();
+                                });
+                                // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+                                lob.on("error", function () {
+                                    executeError(err, res);
+                                    // Reject promise
+                                    lobLoading[index*2].reject();
+                                });
+                            }
+                            if (thumbnailLob) {
+                                // Add promise at index
+                                lobLoading[index*2+1] = Q.defer();
+                                lobPromises[index*2+1] = lobLoading[index*2+1].promise;
+                                // When data comes in from the stream, add it to the buffer
+                                thumbnailLob.on("data", function (chunk) {
+                                    thumbnailBufferLength = thumbnailBufferLength + chunk.length;
+                                    thumbnailBuffer = Buffer.concat([thumbnailBuffer, chunk], thumbnailBufferLength);
+                                });
+                                //When the data is finished coming in, change it to base 64 and add to result
+                                thumbnailLob.on("end", function () {
+                                    result.rows[index][row.length-2] = thumbnailBuffer.toString("base64");
+                                });
+                                // When the stream closes, resolve the promsie
+                                thumbnailLob.on("close", function (chunk) {
+                                    // Fulfill promise
+                                    lobLoading[index*2+1].resolve();
+                                });
+                                // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+                                thumbnailLob.on("error", function () {
+                                    executeError(err, res);
+                                    // Reject promise
+                                    lobLoading[index*2+1].reject();
+                                });
+                            }
+                        });
+                        // When all promises complete, return the results
+                        Q.allSettled(lobPromises).then(function () {
+                            res.send({
+                                success: true,
+                                data: result.rows
+                            });
+                        });
+                    }
+                }
+
+                    // doRelease(connection);
+
+            );
+        });
+});
+
+
 app.route("/displayGroup")
     .get(function(req, res){
         var DBQueryString =
@@ -424,7 +497,7 @@ app.route("/displayGroup")
           });
     });
 
-//Delete a group member based on username
+
 app.post("/deleteMember" , function(req, res){
     var DBQueryString =
               "DELETE from GROUP_LISTS WHERE group_id = :group_id AND FRIEND_ID = :user_name" ,
@@ -450,7 +523,6 @@ app.post("/deleteMember" , function(req, res){
          });
 });
 
-//Delete a group. See project report for more details
 app.post("/deleteGroup" , function(req, res){
     var DBQueryUpdate =
         "UPDATE images " +
@@ -488,7 +560,6 @@ app.post("/deleteGroup" , function(req, res){
     });
 });
 
-//Return a list of groups a user is a member of
 app.post("/memberships", function(req, res){
     var DBQueryString =
         "SELECT l.group_id, g.group_name " +
@@ -514,8 +585,6 @@ app.post("/memberships", function(req, res){
     });
 });
 
-//GET : return a list of groups that the user owns
-//POST : insert a new group into the groups table
 app.route("/groups")
     .get(function(req, res){
         var DBQueryString =
@@ -584,7 +653,6 @@ app.route("/groups")
     });
 
 
-//Delete an image based on photo id
 app.post("/deleteImage", function(req, res){
   var DBQueryString_tracking = "DELETE from IMAGE_TRACKING WHERE PHOTO_ID = :photo_id; ",
       DBQueryString_images = "DELETE from IMAGES WHERE PHOTO_ID = :photo_id; " ,
@@ -612,8 +680,7 @@ app.post("/deleteImage", function(req, res){
 
 });
 
-//first check if the username/email combination exists
-//if it is a unique entry then register the user
+
 app.route("/register")
     .get(function (req, res) {
         /** Use to check if a user name or email is already taken.
@@ -717,7 +784,7 @@ app.route("/register")
                    if (err) {
                        executeError(err, res);
                    } else {
-                       // console.log(util.inspect(result, {showHidden: false, depth: null}));
+                       console.log(util.inspect(result, {showHidden: false, depth: null}));
                        res.send({success: true});
                     }
                     doRelease(connection);
@@ -726,10 +793,6 @@ app.route("/register")
         });
     });
 
-
-//Both getSearchResults and getImages take in an blob
-//data from the database and converts them into a base 64
-//string representation
 
 getSearchResults = function (row, index) {
   var lob, buffer, bufferLength;
@@ -809,6 +872,8 @@ getSearchResults = function (row, index) {
   return deferred.promise;
 
 };
+
+
 
 getImages = function (row, index) {
   var lob, buffer, bufferLength;
@@ -962,10 +1027,6 @@ app.post("/getMyPictures", function(req, res){
     });
 });
 
-
-//Return the most popular images based on the number
-//of distinct users that clicked on the image. See
-//project report for more details.
 app.post("/getPopularPictures", function(req, res){
   var DBQueryString =
       "with order1 as (SELECT * from ( select tr.photo_id, COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id AND i.permitted != 2 group by tr.photo_id ORDER BY photo_count DESC ) where photo_count IN (select distinct COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id AND i.permitted != 2 group by tr.photo_id order by photo_count DESC FETCH FIRST 5 ROWS ONLY)) select images.photo_id, images.owner_name, images.permitted, images.subject, images.place, images.timing, images.description, images.thumbnail, images.photo from images, order1 where images.photo_id = order1.photo_id order by order1.photo_count desc",
@@ -1017,8 +1078,7 @@ app.post("/getPopularPictures", function(req, res){
 });
 
 
-//Select all images from the database. only an 
-//admin can use this function
+
 app.post("/getAdminPictures", function(req, res){
   var DBQueryString =
       "SELECT * " +
@@ -1069,6 +1129,8 @@ app.post("/getAdminPictures", function(req, res){
 
 
 });
+
+
 
 
 // Retrieves pictures that others uploaded onto the database
@@ -1413,8 +1475,8 @@ app.post("/analysis", function(req, res){
         DBQueryString += "GROUP BY CUBE(to_char(NEXT_DAY(timing, 'SAT'), 'YYYY-MM-DD'))";
     };
 
-    // console.log(DBQueryString);
-    // console.log(DBQueryParam);
+    console.log(DBQueryString);
+    console.log(DBQueryParam);
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
             connectionError(err, res);

@@ -22,15 +22,6 @@
                 <div class="form-group">
                     <label for="searchKey" style="float: left">Keywords</label>
                     <input class="form-control input-sm" ng-model="searchKey" type="text" placeholder="Eg. 'dog, cat, rabbit'">
-                    <!-- <div style="margin-left: 20px">
-                        <input type="radio" value="subjectVal" name="subjectName" ng-model="subjectRadio" required> Subject
-                    </div>
-                    <div style="margin-left: 20px">
-                        <input type="radio" value="descVal" name="descName" ng-model="descRadio" required> Description
-                    </div>
-                    <div style="margin-left: 20px">
-                        <input type="radio" value="placeVal" name="placeName" ng-model="placeRadio" required> Place
-                    </div> -->
                 </div>
 
                 <div style="clear: none; float: left">
@@ -54,7 +45,7 @@
 
   <div class="selectedPic">
       <div class="photo" style="width: 50%; display: inline-block;">
-        <image class="selectedPhoto" style="max-height:400px; max-width:400px; margin-right:5px; border:1px solid black; margin-left:50px;" ng-src={{selected.src}}></image>
+        <image class="selectedPhoto" ng-show="selected" style="max-height:400px; max-width:400px; margin-right:5px; border:1px solid black; margin-left:50px;" ng-src={{selected.src}}></image>
       </div>
       <div class="photoInfo" style="width: 45%; display: inline-block;">
         <p ng-show="selected">Owner: {{selected.owner}}</p>

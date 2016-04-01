@@ -1,0 +1,57 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/cshome/jwoo/.linuxbrew/Cellar/node/5.4.1_1/bin/node',
+1 verbose cli   '/cshome/jwoo/.linuxbrew/bin/npm',
+1 verbose cli   'rebuild',
+1 verbose cli   'oracledb' ]
+2 info using npm@3.5.3
+3 info using node@v5.4.1
+4 info readInstalled object
+5 verbose rebuild path, id [ '/cshome/jwoo/cmput391/DEMO PROJECT/project/node_modules/oracledb',
+5 verbose rebuild   'oracledb@1.7.1' ]
+6 silly rebuild set [ '/cshome/jwoo/cmput391/DEMO PROJECT/project/node_modules/oracledb' ]
+7 info build /cshome/jwoo/cmput391/DEMO PROJECT/project/node_modules/oracledb
+8 info lifecycle oracledb@1.7.1~preinstall: oracledb@1.7.1
+9 silly lifecycle oracledb@1.7.1~preinstall: no script for preinstall, continuing
+10 info linkStuff oracledb@1.7.1
+11 silly linkStuff oracledb@1.7.1 has /cshome/jwoo/cmput391/DEMO PROJECT/project/node_modules as its parent node_modules
+12 verbose linkBins oracledb@1.7.1
+13 verbose linkMans oracledb@1.7.1
+14 verbose rebuildBundles oracledb@1.7.1
+15 info lifecycle oracledb@1.7.1~install: oracledb@1.7.1
+16 verbose lifecycle oracledb@1.7.1~install: unsafe-perm in lifecycle true
+17 verbose lifecycle oracledb@1.7.1~install: PATH: /cshome/jwoo/.linuxbrew/lib/node_modules/npm/bin/node-gyp-bin:/cshome/jwoo/cmput391/DEMO PROJECT/project/node_modules/oracledb/node_modules/.bin:/cshome/jwoo/cmput391/DEMO PROJECT/project/node_modules/.bin:/cshome/jwoo/.linuxbrew/bin:/cshome/jwoo/.linuxbrew/bin:/cshome/jwoo/.linuxbrew/bin:/usr/local/matlab/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/oracle/bin:/oracle/sqldeveloper
+18 verbose lifecycle oracledb@1.7.1~install: CWD: /cshome/jwoo/cmput391/DEMO PROJECT/project/node_modules/oracledb
+19 silly lifecycle oracledb@1.7.1~install: Args: [ '-c', 'node-gyp rebuild' ]
+20 silly lifecycle oracledb@1.7.1~install: Returned: code: 1  signal: null
+21 info lifecycle oracledb@1.7.1~install: Failed to exec install script
+22 verbose stack Error: oracledb@1.7.1 install: `node-gyp rebuild`
+22 verbose stack Exit status 1
+22 verbose stack     at EventEmitter.<anonymous> (/cshome/jwoo/.linuxbrew/lib/node_modules/npm/lib/utils/lifecycle.js:232:16)
+22 verbose stack     at emitTwo (events.js:87:13)
+22 verbose stack     at EventEmitter.emit (events.js:172:7)
+22 verbose stack     at ChildProcess.<anonymous> (/cshome/jwoo/.linuxbrew/lib/node_modules/npm/lib/utils/spawn.js:24:14)
+22 verbose stack     at emitTwo (events.js:87:13)
+22 verbose stack     at ChildProcess.emit (events.js:172:7)
+22 verbose stack     at maybeClose (internal/child_process.js:821:16)
+22 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:211:5)
+23 verbose pkgid oracledb@1.7.1
+24 verbose cwd /cshome/jwoo/cmput391/DEMO PROJECT/project
+25 error Linux 3.16.0-62-generic
+26 error argv "/cshome/jwoo/.linuxbrew/Cellar/node/5.4.1_1/bin/node" "/cshome/jwoo/.linuxbrew/bin/npm" "rebuild" "oracledb"
+27 error node v5.4.1
+28 error npm  v3.5.3
+29 error code ELIFECYCLE
+30 error oracledb@1.7.1 install: `node-gyp rebuild`
+30 error Exit status 1
+31 error Failed at the oracledb@1.7.1 install script 'node-gyp rebuild'.
+31 error Make sure you have the latest version of node.js and npm installed.
+31 error If you do, this is most likely a problem with the oracledb package,
+31 error not with npm itself.
+31 error Tell the author that this fails on your system:
+31 error     node-gyp rebuild
+31 error You can get information on how to open an issue for this project with:
+31 error     npm bugs oracledb
+31 error Or if that isn't available, you can get their info via:
+31 error     npm owner ls oracledb
+31 error There is likely additional logging output above.
+32 verbose exit [ 1, true ]

@@ -204,6 +204,7 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
     $scope.search = function() {
       //clear results from previous searches
       $scope.searchResults = [];
+      $scope.selected = null;
 
       // Only uses keyword
       var keywords = $scope.searchKey,
