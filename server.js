@@ -43,7 +43,7 @@ app.use(function (req, res, next) {
 });
 
 //Set port number.
-app.set('port', 8080);
+app.set('port', 16040);
 app.set('ip', "127.0.0.1");
 
 //Add public folder for static files
