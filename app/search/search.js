@@ -58,7 +58,7 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
       });
     };
 
-    displayResults = function (photoResults, rowResults) {
+    displayResults = function (photoResults, rowResults, typeResults) {
       var image = new Image(),
           photoString,
           photo;
@@ -68,15 +68,30 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
             photoString = photoResults[i];
 
             image.src = getImageSrc(photoString);
-            $scope.searchResults.push({src: image.src,
-                                    id: rowResults[i][8],
-                                    owner: rowResults[i][7],
-                                    permit: rowResults[i][6],
-                                    subject: rowResults[i][5],
-                                    place: rowResults[i][4],
-                                    timing: rowResults[i][3],
-                                    desc: rowResults[i][2]
-                                  });
+
+            if(typeResults !== "date"){
+                $scope.searchResults.push({src: image.src,
+                                        id: rowResults[i][8],
+                                        owner: rowResults[i][7],
+                                        permit: rowResults[i][6],
+                                        subject: rowResults[i][5],
+                                        place: rowResults[i][4],
+                                        timing: rowResults[i][3],
+                                        desc: rowResults[i][2]
+                                      });
+            }else {
+                $scope.searchResults.push({src: image.src,
+                                        id: rowResults[i][0],
+                                        owner: rowResults[i][1],
+                                        permit: rowResults[i][2],
+                                        subject: rowResults[i][3],
+                                        place: rowResults[i][4],
+                                        timing: rowResults[i][5],
+                                        desc: rowResults[i][6]
+                                      });
+            }
+
+
         }
 
 
@@ -205,7 +220,7 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
             if(result.data.images.length == 0){
               alert("No search results");
             }else {
-              displayResults(result.data.images, result.data.rows);
+              displayResults(result.data.images, result.data.rows, null);
             }
         });
 
@@ -221,7 +236,7 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
             if(result.data.images.length == 0){
               alert("No search results");
             }else {
-              displayResults(result.data.images, result.data.rows);
+              displayResults(result.data.images, result.data.rows, "date");
             }
         });
 
@@ -240,7 +255,7 @@ angular.module("myApp.search", ["ngRoute", "LocalStorageModule", "myApp.search.s
             if(result.data.images.length == 0){
               alert("No search results");
             }else {
-              displayResults(result.data.images, result.data.rows);
+              displayResults(result.data.images, result.data.rows, null);
             }
         });
 
