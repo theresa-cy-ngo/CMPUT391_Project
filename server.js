@@ -793,6 +793,88 @@ app.route("/register")
         });
     });
 
+
+getSearchResults = function (row, index) {
+  var lob, buffer, bufferLength;
+  var lobLoadingThumb = Q.defer();
+  var lobLoadingPhoto = Q.defer();
+  var deferred =  Q.defer();
+  var imageObj;
+  var thumbObj;
+
+  lob = row[0];
+  thumbnailLob = row[1];
+  buffer = new Buffer(0);
+  bufferLength = 0;
+  thumbnailBuffer = new Buffer(0);
+  thumbnailBufferLength = 0;
+
+  // console.log(util.inspect(row, false, null));
+
+
+  if (lob) {
+    // console.log("LOB " + util.inspect(lob, false, null));
+        // When data comes in from the stream, add it to the buffer
+        lob.on("data", function (chunk) {
+            bufferLength = bufferLength + chunk.length;
+            buffer = Buffer.concat([buffer, chunk], bufferLength);
+            // console.log("DATA " + bufferLength);
+        });
+        //When the data is finished coming in, change it to base 64 and add to result
+        lob.on("end", function () {
+            imageObj = buffer.toString("base64");
+            // console.log("END " + imageObj);
+        });
+        // When the stream closes, resolce the promsie
+        lob.on("close", function (chunk) {
+
+            // console.log("CLOSE PHOTO + RESOLVE");
+
+            // Fulfill promise
+            lobLoadingPhoto.resolve();
+        });
+        // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+        lob.on("error", function (err) {
+            // executeError(err, res);
+            // Reject promise
+            console.log("ERROR " + err);
+            lobLoadingPhoto.reject();
+        });
+  }
+  if (thumbnailLob) {
+        // When data comes in from the stream, add it to the buffer
+        thumbnailLob.on("data", function (chunk) {
+            thumbnailBufferLength = thumbnailBufferLength + chunk.length;
+            thumbnailBuffer = Buffer.concat([thumbnailBuffer, chunk], thumbnailBufferLength);
+        });
+        //When the data is finished coming in, change it to base 64 and add to result
+        thumbnailLob.on("end", function () {
+            thumbObj = thumbnailBuffer.toString("base64");
+        });
+        // When the stream closes, resolve the promsie
+        thumbnailLob.on("close", function (chunk) {
+            // Fulfill promise
+          lobLoadingThumb.resolve();
+        });
+        // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+        thumbnailLob.on("error", function () {
+            // executeError(err, res);
+            // Reject promise
+            lobLoadingThumb.reject();
+        });
+  }
+
+  //When all promises complete, return the results
+  Q.all([lobLoadingPhoto.promise, lobLoadingThumb.promise]).then(function () {
+      deferred.resolve({imageObj: imageObj, thumbObj: thumbObj});
+  }).done();
+
+  return deferred.promise;
+
+};
+
+
+
 getImages = function (row, index) {
   var lob, buffer, bufferLength;
   var lobLoadingThumb = Q.defer();
@@ -947,7 +1029,7 @@ app.post("/getMyPictures", function(req, res){
 
 app.post("/getPopularPictures", function(req, res){
   var DBQueryString =
-      "select * from images where photo_id IN (SELECT photo_id from (select tr.photo_id, COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id group by tr.photo_id ORDER BY photo_count DESC ) where photo_count IN (select distinct COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id group by tr.photo_id order by photo_count DESC FETCH FIRST 5 ROWS ONLY))",
+      "with order1 as (SELECT * from ( select tr.photo_id, COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id AND i.permitted != 2 group by tr.photo_id ORDER BY photo_count DESC ) where photo_count IN (select distinct COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id AND i.permitted != 2 group by tr.photo_id order by photo_count DESC FETCH FIRST 5 ROWS ONLY)) select images.photo_id, images.owner_name, images.permitted, images.subject, images.place, images.timing, images.description, images.thumbnail, images.photo from images, order1 where images.photo_id = order1.photo_id order by order1.photo_count desc",
       DBQueryParam = {};
   oracledb.getConnection(dbConfig, function (err, connection) {
       if (err) {
@@ -961,22 +1043,32 @@ app.post("/getPopularPictures", function(req, res){
              if (err) {
                  executeError(err, res);
              } else {
-                   result.rows.forEach(function(row, index, array){
-                         getImages(row).then(function(photoData){
-                             imageArr.push(photoData.imageObj);
-                             thumbArr.push(photoData.thumbObj);
+                     if(result.rows.length !== 0){
+                           result.rows.forEach(function(row, index, array){
+                            // console.log("ROW " + util.inspect(row, false, null));
 
-                             if(imageArr.length == result.rows.length){
-                                //  console.log("seding back");
-                                 doRelease(connection);
-                                 res.send({
-                                   rows:result.rows,
-                                   images: imageArr,
-                                   thumbs: thumbArr
-                                 });
-                             }
-                         });
-                  });
+                               getImages(row).then(function(photoData){
+                                   imageArr.push(photoData.imageObj);
+                                   thumbArr.push(photoData.thumbObj);
+
+                                   if(imageArr.length == result.rows.length){
+                                      //  console.log("seding back");
+                                       doRelease(connection);
+                                       res.send({
+                                         rows:result.rows,
+                                         images: imageArr,
+                                         thumbs: thumbArr
+                                       });
+                                   }
+                               });
+                          });
+                     }else{
+                       res.send({
+                         rows:result.rows,
+                         images: imageArr,
+                         thumbs: thumbArr
+                       });
+                   }
               }
           }
       );
@@ -1004,22 +1096,32 @@ app.post("/getAdminPictures", function(req, res){
              if (err) {
                  executeError(err, res);
              } else {
-                   result.rows.forEach(function(row, index, array){
-                         getImages(row).then(function(photoData){
-                             imageArr.push(photoData.imageObj);
-                             thumbArr.push(photoData.thumbObj);
+                       if(result.rows.length !== 0){
+                             result.rows.forEach(function(row, index, array){
+                              // console.log("ROW " + util.inspect(row, false, null));
 
-                             if(imageArr.length == result.rows.length){
-                                //  console.log("seding back");
-                                 doRelease(connection);
-                                 res.send({
-                                   rows:result.rows,
-                                   images: imageArr,
-                                   thumbs: thumbArr
+                                 getImages(row).then(function(photoData){
+                                     imageArr.push(photoData.imageObj);
+                                     thumbArr.push(photoData.thumbObj);
+
+                                     if(imageArr.length == result.rows.length){
+                                        //  console.log("seding back");
+                                         doRelease(connection);
+                                         res.send({
+                                           rows:result.rows,
+                                           images: imageArr,
+                                           thumbs: thumbArr
+                                         });
+                                     }
                                  });
-                             }
+                            });
+                       }else{
+                         res.send({
+                           rows:result.rows,
+                           images: imageArr,
+                           thumbs: thumbArr
                          });
-                  });
+                     }
               }
           }
       );
@@ -1052,22 +1154,32 @@ app.post("/getGroupPictures", function(req, res){
                if (err) {
                    executeError(err, res);
                } else {
-                     result.rows.forEach(function(row, index, array){
-                           getImages(row).then(function(photoData){
-                               imageArr.push(photoData.imageObj);
-                               thumbArr.push(photoData.thumbObj);
+                         if(result.rows.length !== 0){
+                               result.rows.forEach(function(row, index, array){
+                                // console.log("ROW " + util.inspect(row, false, null));
 
-                               if(imageArr.length == result.rows.length){
-                                  //  console.log("seding back");
-                                   doRelease(connection);
-                                   res.send({
-                                     rows:result.rows,
-                                     images: imageArr,
-                                     thumbs: thumbArr
+                                   getImages(row).then(function(photoData){
+                                       imageArr.push(photoData.imageObj);
+                                       thumbArr.push(photoData.thumbObj);
+
+                                       if(imageArr.length == result.rows.length){
+                                          //  console.log("seding back");
+                                           doRelease(connection);
+                                           res.send({
+                                             rows:result.rows,
+                                             images: imageArr,
+                                             thumbs: thumbArr
+                                           });
+                                       }
                                    });
-                               }
+                              });
+                         }else{
+                           res.send({
+                             rows:result.rows,
+                             images: imageArr,
+                             thumbs: thumbArr
                            });
-                    });
+                       }
                 }
             }
         );
@@ -1076,41 +1188,8 @@ app.post("/getGroupPictures", function(req, res){
 
 // Get search results from only keywords
 app.post("/getKeyResults", function(req, res){
-    var DBQueryString =
-        "SELECT * " +
-        "FROM images " +
-        "WHERE ",
-        DBSearchString = "",
-        DBQueryParam = {userName: req.query.userName};
-
-    // If the user is not an admin, add on the permission restrictions
-    if (req.query.userName != "admin"){
-      DBQueryString = DBQueryString + "(images.permitted IN " +
-                                      "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
-                                      "OR images.permitted = 1 " +
-                                      "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
-                                      "AND ";
-    } else {
-      DBQueryParam = {};
-    };
-
-    // Add the bracket to the query for searching the keywords
-    DBQueryString = DBQueryString + "(";
-
-    var keywords = req.query.keywords
-    var index = 0
-    for (index; index < keywords.length; index++) {
-        key = keywords[index];
-        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.place LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' ";
-        if (index != 0) {
-          DBQueryString = DBQueryString + "OR" + DBSearchString
-        } else {
-          DBQueryString = DBQueryString + DBSearchString
-        }
-    }
-    DBQueryString = DBQueryString + ")"
-
-    // console.log(DBQueryString);
+    var DBQueryString = req.body.queryStr,
+        DBQueryParam = {};
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -1125,26 +1204,33 @@ app.post("/getKeyResults", function(req, res){
                if (err) {
                    executeError(err, res);
                } else {
-                //  console.log(util.inspect(result, false, null));
 
-                     result.rows.forEach(function(row, index, array){
-                      // console.log("ROW " + util.inspect(row, false, null));
+                    if(result.rows.length !== 0){
+                          result.rows.forEach(function(row, index, array){
+                           // console.log("ROW " + util.inspect(row, false, null));
 
-                         getImages(row).then(function(photoData){
-                             imageArr.push(photoData.imageObj);
-                             thumbArr.push(photoData.thumbObj);
+                              getSearchResults(row).then(function(photoData){
+                                  imageArr.push(photoData.imageObj);
+                                  thumbArr.push(photoData.thumbObj);
 
-                             if(imageArr.length == result.rows.length){
-                                //  console.log("seding back");
-                                 doRelease(connection);
-                                 res.send({
-                                   rows:result.rows,
-                                   images: imageArr,
-                                   thumbs: thumbArr
-                                 });
-                             }
+                                  if(imageArr.length == result.rows.length){
+                                     //  console.log("seding back");
+                                      doRelease(connection);
+                                      res.send({
+                                        rows:result.rows,
+                                        images: imageArr,
+                                        thumbs: thumbArr
+                                      });
+                                  }
+                              });
                          });
-                    });
+                    }else{
+                      res.send({
+                        rows:result.rows,
+                        images: imageArr,
+                        thumbs: thumbArr
+                      });
+                  }
                }
             }
         );
@@ -1187,22 +1273,32 @@ app.post("/getTimeResults", function(req, res){
                if (err) {
                    executeError(err, result);
                } else {
-                   result.rows.forEach(function(row, index, array){
-                       getImages(row).then(function(photoData){
-                           imageArr.push(photoData.imageObj);
-                           thumbArr.push(photoData.thumbObj);
+                     if(result.rows.length !== 0){
+                           result.rows.forEach(function(row, index, array){
+                            // console.log("ROW " + util.inspect(row, false, null));
 
-                           if(imageArr.length == result.rows.length){
-                              //  console.log("seding back");
-                               doRelease(connection);
-                               res.send({
-                                 rows:result.rows,
-                                 images: imageArr,
-                                 thumbs: thumbArr
+                               getImages(row).then(function(photoData){
+                                   imageArr.push(photoData.imageObj);
+                                   thumbArr.push(photoData.thumbObj);
+
+                                   if(imageArr.length == result.rows.length){
+                                      //  console.log("seding back");
+                                       doRelease(connection);
+                                       res.send({
+                                         rows:result.rows,
+                                         images: imageArr,
+                                         thumbs: thumbArr
+                                       });
+                                   }
                                });
-                           }
+                          });
+                     }else{
+                       res.send({
+                         rows:result.rows,
+                         images: imageArr,
+                         thumbs: thumbArr
                        });
-                  });
+                   }
                }
 
             }
@@ -1212,41 +1308,8 @@ app.post("/getTimeResults", function(req, res){
 
 // Get search results from both keywords and a timeframe
 app.post("/getKeyTimeResults", function(req, res){
-    var DBQueryString =
-        "SELECT * " +
-        "FROM images " +
-        "WHERE ",
-        DBSearchString = "",
-        DBQueryParam = {userName: req.query.userName, startDate: req.query.timeStart, endDate: req.query.timeEnd};
-
-    // If the user is not an admin, add on the permission restrictions
-    if (req.query.userName != "admin"){
-      DBQueryString = DBQueryString + "(images.permitted IN " +
-                                      "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
-                                      "OR images.permitted = 1 " +
-                                      "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
-                                      "AND ";
-    } else {
-      DBQueryParam = {startDate: req.query.timeStart, endDate: req.query.timeEnd};
-    };
-
-    DBQueryString = DBQueryString + "(images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))" +
-                                    "AND (";
-
-    var keywords = req.query.keywords
-    var index = 0
-    for (index; index < keywords.length; index++) {
-        key = keywords[index];
-        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.place LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' ";
-        if (index != 0) {
-          DBQueryString = DBQueryString + "OR" + DBSearchString
-        } else {
-          DBQueryString = DBQueryString + DBSearchString
-        }
-    }
-    DBQueryString = DBQueryString + ")"
-
-    // console.log(DBQueryString);
+    var DBQueryString =req.body.queryStr,
+        DBQueryParam = {};
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -1261,22 +1324,33 @@ app.post("/getKeyTimeResults", function(req, res){
                if (err) {
                    executeError(err, res);
                } else {
-                 result.rows.forEach(function(row, index, array){
-                    getImages(row).then(function(photoData){
-                           imageArr.push(photoData.imageObj);
-                           thumbArr.push(photoData.thumbObj);
+                //  console.log(util.inspect(result, false, null));
+                        if(result.rows.length !== 0){
+                              result.rows.forEach(function(row, index, array){
+                               // console.log("ROW " + util.inspect(row, false, null));
 
-                           if(imageArr.length == result.rows.length){
-                              //  console.log("seding back");
-                               doRelease(connection);
-                               res.send({
-                                 rows:result.rows,
-                                 images: imageArr,
-                                 thumbs: thumbArr
-                               });
-                           }
-                       });
-                  });
+                                  getSearchResults(row).then(function(photoData){
+                                      imageArr.push(photoData.imageObj);
+                                      thumbArr.push(photoData.thumbObj);
+
+                                      if(imageArr.length == result.rows.length){
+                                         //  console.log("seding back");
+                                          doRelease(connection);
+                                          res.send({
+                                            rows:result.rows,
+                                            images: imageArr,
+                                            thumbs: thumbArr
+                                          });
+                                      }
+                                  });
+                             });
+                        }else{
+                          res.send({
+                            rows:result.rows,
+                            images: imageArr,
+                            thumbs: thumbArr
+                          });
+                      }
                }
             }
         );
