@@ -15,7 +15,7 @@ var express = require('express'),
     stream = require("stream"),
     Q = require("q");
 
-var dbConfig = {user: "jwoo", password: "", connectString: "localhost:1525/CRS"};
+var dbConfig = {user: "", password: "", connectString: "localhost:1525/CRS"};
 //for lab machines, change connectString to "CRS"
 
 
