@@ -1,5 +1,21 @@
 #!/bin/env node
 
+
+//*******************************************
+// Server side code
+// Here are the POSTS and GETS that connect to
+// Oracle DB
+//
+//
+//
+//
+//
+//
+//
+//*********************************************
+
+
+
 var express = require('express'),
     app = express(),
     http = require('http'),
@@ -72,7 +88,8 @@ process.on('SIGINT', function() {
 });
 
 
-
+// Post for login info. Checks to see if a user exists. If they have a valid username/password
+// Return success
 app.post("/login", function (req, res) {
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
@@ -110,6 +127,9 @@ app.post("/login", function (req, res) {
     );
 });
 
+
+// Get the last photo ID in order to increment
+// to make a new ID
 app.post("/photoid", function(req, res){
   var DBQueryString;
 
@@ -139,7 +159,8 @@ app.post("/photoid", function(req, res){
         });
 });
 
-
+// Get the last group ID in order to increment
+// to make a new ID
 app.post("/groupid", function(req, res){
     oracledb.getConnection(dbConfig, function (err, connection) {
             if (err) {
@@ -178,6 +199,7 @@ app.post("/groupid", function(req, res){
 
 
 
+//Update a photo's information based on form data
 app.post("/updatePhoto", function(req, res){
   var DBQueryString =
       "UPDATE IMAGES " +
@@ -212,7 +234,9 @@ app.post("/updatePhoto", function(req, res){
 });
 
 
-//Based on code found here: https://github.com/oracle/node-oracledb/blob/master/doc/api.md#lobhandling
+// Based on code found here: https://github.com/oracle/node-oracledb/blob/master/doc/api.md#lobhandling
+// Translate photo data to base 64 and write to empty blob
+// See project report for more details
 app.post("/upload", function(req, res){
     var DBQueryString =
         "INSERT INTO images (photo_id, owner_name, permitted, subject, place, timing, description, thumbnail, photo) VALUES (:photo_id, :owner_name, :permitted, :subject, :place, TO_DATE (:timing, 'yyyy/mm/dd'), :description, EMPTY_BLOB(), EMPTY_BLOB()) RETURNING photo, thumbnail INTO :lobbv, :lobtn",
@@ -324,7 +348,7 @@ app.post("/upload", function(req, res){
                     });
 
                     lob.on('finish', function() {
-                        console.log("lob.on 'finish' event");
+                        // console.log("lob.on 'finish' event");
                         connection.commit( function(err) {
                             if (err)
                               console.error(err.message);
@@ -346,105 +370,8 @@ app.post("/upload", function(req, res){
    });
 });
 
-//testing
-app.get("/upload", function(req, res){
-    var DBQueryString =
-        "select * from images where photo_id = :photoid",
-        DBQueryParam = {photoid: req.query.photoID};
-
-
-        oracledb.getConnection(dbConfig, function (err, connection) {
-            if (err) {
-                connectionError(err, res);
-                return;
-            }
-           connection.execute(DBQueryString, DBQueryParam,
-               {autoCommit: true},
-               function (err, result) {
-                   var lob, buffer, bufferLength;
-                        // Array of promises
-                        var lobLoading = [];
-                        var lobPromises = [];
-                   if (err) {
-                       executeError(err, res);
-                   } else {
-                       result.rows.forEach(function (row, index, array) {
-                            lob = row[row.length-1];
-                            thumbnailLob = row[row.length-2];
-                            buffer = new Buffer(0);
-                            bufferLength = 0;
-                            thumbnailBuffer = new Buffer(0);
-                            thumbnailBufferLength = 0;
-                            if (lob) {
-                                // Add promise at index
-                                // Have to use index*2 because each row has two blobs
-                                // Q sucks, so we have to make an array of the deferreds and the promises...
-                                lobLoading[index*2] = Q.defer();
-                                lobPromises[index*2] = lobLoading[index*2].promise;
-                                // When data comes in from the stream, add it to the buffer
-                                lob.on("data", function (chunk) {
-                                    bufferLength = bufferLength + chunk.length;
-                                    buffer = Buffer.concat([buffer, chunk], bufferLength);
-                                });
-                                //When the data is finished coming in, change it to base 64 and add to result
-                                lob.on("end", function () {
-                                    result.rows[index][row.length-1] = buffer.toString("base64");
-                                });
-                                // When the stream closes, resolce the promsie
-                                lob.on("close", function (chunk) {
-                                    // Fulfill promise
-                                    lobLoading[index*2].resolve();
-                                });
-                                // Make sure we reject the promise when the stream fails so that we don't have a memory leak
-                                lob.on("error", function () {
-                                    executeError(err, res);
-                                    // Reject promise
-                                    lobLoading[index*2].reject();
-                                });
-                            }
-                            if (thumbnailLob) {
-                                // Add promise at index
-                                lobLoading[index*2+1] = Q.defer();
-                                lobPromises[index*2+1] = lobLoading[index*2+1].promise;
-                                // When data comes in from the stream, add it to the buffer
-                                thumbnailLob.on("data", function (chunk) {
-                                    thumbnailBufferLength = thumbnailBufferLength + chunk.length;
-                                    thumbnailBuffer = Buffer.concat([thumbnailBuffer, chunk], thumbnailBufferLength);
-                                });
-                                //When the data is finished coming in, change it to base 64 and add to result
-                                thumbnailLob.on("end", function () {
-                                    result.rows[index][row.length-2] = thumbnailBuffer.toString("base64");
-                                });
-                                // When the stream closes, resolve the promsie
-                                thumbnailLob.on("close", function (chunk) {
-                                    // Fulfill promise
-                                    lobLoading[index*2+1].resolve();
-                                });
-                                // Make sure we reject the promise when the stream fails so that we don't have a memory leak
-                                thumbnailLob.on("error", function () {
-                                    executeError(err, res);
-                                    // Reject promise
-                                    lobLoading[index*2+1].reject();
-                                });
-                            }
-                        });
-                        // When all promises complete, return the results
-                        Q.allSettled(lobPromises).then(function () {
-                            res.send({
-                                success: true,
-                                data: result.rows
-                            });
-                        });
-                    }
-                }
-
-                    // doRelease(connection);
-
-            );
-        });
-});
-
-
+//GET : return the group members based on group id
+//POST : insert a new row into the groups table from form data
 app.route("/displayGroup")
     .get(function(req, res){
         var DBQueryString =
@@ -497,7 +424,7 @@ app.route("/displayGroup")
           });
     });
 
-
+//Delete a group member based on username
 app.post("/deleteMember" , function(req, res){
     var DBQueryString =
               "DELETE from GROUP_LISTS WHERE group_id = :group_id AND FRIEND_ID = :user_name" ,
@@ -523,6 +450,7 @@ app.post("/deleteMember" , function(req, res){
          });
 });
 
+//Delete a group. See project report for more details
 app.post("/deleteGroup" , function(req, res){
     var DBQueryUpdate =
         "UPDATE images " +
@@ -560,6 +488,7 @@ app.post("/deleteGroup" , function(req, res){
     });
 });
 
+//Return a list of groups a user is a member of
 app.post("/memberships", function(req, res){
     var DBQueryString =
         "SELECT l.group_id, g.group_name " +
@@ -585,6 +514,8 @@ app.post("/memberships", function(req, res){
     });
 });
 
+//GET : return a list of groups that the user owns
+//POST : insert a new group into the groups table
 app.route("/groups")
     .get(function(req, res){
         var DBQueryString =
@@ -653,6 +584,7 @@ app.route("/groups")
     });
 
 
+//Delete an image based on photo id
 app.post("/deleteImage", function(req, res){
   var DBQueryString_tracking = "DELETE from IMAGE_TRACKING WHERE PHOTO_ID = :photo_id; ",
       DBQueryString_images = "DELETE from IMAGES WHERE PHOTO_ID = :photo_id; " ,
@@ -680,7 +612,8 @@ app.post("/deleteImage", function(req, res){
 
 });
 
-
+//first check if the username/email combination exists
+//if it is a unique entry then register the user
 app.route("/register")
     .get(function (req, res) {
         /** Use to check if a user name or email is already taken.
@@ -784,7 +717,7 @@ app.route("/register")
                    if (err) {
                        executeError(err, res);
                    } else {
-                       console.log(util.inspect(result, {showHidden: false, depth: null}));
+                       // console.log(util.inspect(result, {showHidden: false, depth: null}));
                        res.send({success: true});
                     }
                     doRelease(connection);
@@ -792,6 +725,90 @@ app.route("/register")
             );
         });
     });
+
+
+//Both getSearchResults and getImages take in an blob
+//data from the database and converts them into a base 64
+//string representation
+
+getSearchResults = function (row, index) {
+  var lob, buffer, bufferLength;
+  var lobLoadingThumb = Q.defer();
+  var lobLoadingPhoto = Q.defer();
+  var deferred =  Q.defer();
+  var imageObj;
+  var thumbObj;
+
+  lob = row[0];
+  thumbnailLob = row[1];
+  buffer = new Buffer(0);
+  bufferLength = 0;
+  thumbnailBuffer = new Buffer(0);
+  thumbnailBufferLength = 0;
+
+  // console.log(util.inspect(row, false, null));
+
+
+  if (lob) {
+    // console.log("LOB " + util.inspect(lob, false, null));
+        // When data comes in from the stream, add it to the buffer
+        lob.on("data", function (chunk) {
+            bufferLength = bufferLength + chunk.length;
+            buffer = Buffer.concat([buffer, chunk], bufferLength);
+            // console.log("DATA " + bufferLength);
+        });
+        //When the data is finished coming in, change it to base 64 and add to result
+        lob.on("end", function () {
+            imageObj = buffer.toString("base64");
+            // console.log("END " + imageObj);
+        });
+        // When the stream closes, resolce the promsie
+        lob.on("close", function (chunk) {
+
+            // console.log("CLOSE PHOTO + RESOLVE");
+
+            // Fulfill promise
+            lobLoadingPhoto.resolve();
+        });
+        // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+        lob.on("error", function (err) {
+            // executeError(err, res);
+            // Reject promise
+            console.log("ERROR " + err);
+            lobLoadingPhoto.reject();
+        });
+  }
+  if (thumbnailLob) {
+        // When data comes in from the stream, add it to the buffer
+        thumbnailLob.on("data", function (chunk) {
+            thumbnailBufferLength = thumbnailBufferLength + chunk.length;
+            thumbnailBuffer = Buffer.concat([thumbnailBuffer, chunk], thumbnailBufferLength);
+        });
+        //When the data is finished coming in, change it to base 64 and add to result
+        thumbnailLob.on("end", function () {
+            thumbObj = thumbnailBuffer.toString("base64");
+        });
+        // When the stream closes, resolve the promsie
+        thumbnailLob.on("close", function (chunk) {
+            // Fulfill promise
+          lobLoadingThumb.resolve();
+        });
+        // Make sure we reject the promise when the stream fails so that we don't have a memory leak
+        thumbnailLob.on("error", function () {
+            // executeError(err, res);
+            // Reject promise
+            lobLoadingThumb.reject();
+        });
+  }
+
+  //When all promises complete, return the results
+  Q.all([lobLoadingPhoto.promise, lobLoadingThumb.promise]).then(function () {
+      deferred.resolve({imageObj: imageObj, thumbObj: thumbObj});
+  }).done();
+
+  return deferred.promise;
+
+};
 
 getImages = function (row, index) {
   var lob, buffer, bufferLength;
@@ -945,9 +962,13 @@ app.post("/getMyPictures", function(req, res){
     });
 });
 
+
+//Return the most popular images based on the number
+//of distinct users that clicked on the image. See
+//project report for more details.
 app.post("/getPopularPictures", function(req, res){
   var DBQueryString =
-      "select * from images where photo_id IN (SELECT photo_id from (select tr.photo_id, COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id group by tr.photo_id ORDER BY photo_count DESC ) where photo_count IN (select distinct COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id group by tr.photo_id order by photo_count DESC FETCH FIRST 5 ROWS ONLY))",
+      "with order1 as (SELECT * from ( select tr.photo_id, COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id AND i.permitted != 2 group by tr.photo_id ORDER BY photo_count DESC ) where photo_count IN (select distinct COUNT(tr.photo_id) as photo_count from images i, image_tracking tr where i.photo_id = tr.photo_id AND i.permitted != 2 group by tr.photo_id order by photo_count DESC FETCH FIRST 5 ROWS ONLY)) select images.photo_id, images.owner_name, images.permitted, images.subject, images.place, images.timing, images.description, images.thumbnail, images.photo from images, order1 where images.photo_id = order1.photo_id order by order1.photo_count desc",
       DBQueryParam = {};
   oracledb.getConnection(dbConfig, function (err, connection) {
       if (err) {
@@ -961,22 +982,32 @@ app.post("/getPopularPictures", function(req, res){
              if (err) {
                  executeError(err, res);
              } else {
-                   result.rows.forEach(function(row, index, array){
-                         getImages(row).then(function(photoData){
-                             imageArr.push(photoData.imageObj);
-                             thumbArr.push(photoData.thumbObj);
+                     if(result.rows.length !== 0){
+                           result.rows.forEach(function(row, index, array){
+                            // console.log("ROW " + util.inspect(row, false, null));
 
-                             if(imageArr.length == result.rows.length){
-                                //  console.log("seding back");
-                                 doRelease(connection);
-                                 res.send({
-                                   rows:result.rows,
-                                   images: imageArr,
-                                   thumbs: thumbArr
-                                 });
-                             }
-                         });
-                  });
+                               getImages(row).then(function(photoData){
+                                   imageArr.push(photoData.imageObj);
+                                   thumbArr.push(photoData.thumbObj);
+
+                                   if(imageArr.length == result.rows.length){
+                                      //  console.log("seding back");
+                                       doRelease(connection);
+                                       res.send({
+                                         rows:result.rows,
+                                         images: imageArr,
+                                         thumbs: thumbArr
+                                       });
+                                   }
+                               });
+                          });
+                     }else{
+                       res.send({
+                         rows:result.rows,
+                         images: imageArr,
+                         thumbs: thumbArr
+                       });
+                   }
               }
           }
       );
@@ -986,7 +1017,8 @@ app.post("/getPopularPictures", function(req, res){
 });
 
 
-
+//Select all images from the database. only an
+//admin can use this function
 app.post("/getAdminPictures", function(req, res){
   var DBQueryString =
       "SELECT * " +
@@ -1004,22 +1036,32 @@ app.post("/getAdminPictures", function(req, res){
              if (err) {
                  executeError(err, res);
              } else {
-                   result.rows.forEach(function(row, index, array){
-                         getImages(row).then(function(photoData){
-                             imageArr.push(photoData.imageObj);
-                             thumbArr.push(photoData.thumbObj);
+                       if(result.rows.length !== 0){
+                             result.rows.forEach(function(row, index, array){
+                              // console.log("ROW " + util.inspect(row, false, null));
 
-                             if(imageArr.length == result.rows.length){
-                                //  console.log("seding back");
-                                 doRelease(connection);
-                                 res.send({
-                                   rows:result.rows,
-                                   images: imageArr,
-                                   thumbs: thumbArr
+                                 getImages(row).then(function(photoData){
+                                     imageArr.push(photoData.imageObj);
+                                     thumbArr.push(photoData.thumbObj);
+
+                                     if(imageArr.length == result.rows.length){
+                                        //  console.log("seding back");
+                                         doRelease(connection);
+                                         res.send({
+                                           rows:result.rows,
+                                           images: imageArr,
+                                           thumbs: thumbArr
+                                         });
+                                     }
                                  });
-                             }
+                            });
+                       }else{
+                         res.send({
+                           rows:result.rows,
+                           images: imageArr,
+                           thumbs: thumbArr
                          });
-                  });
+                     }
               }
           }
       );
@@ -1027,8 +1069,6 @@ app.post("/getAdminPictures", function(req, res){
 
 
 });
-
-
 
 
 // Retrieves pictures that others uploaded onto the database
@@ -1052,22 +1092,32 @@ app.post("/getGroupPictures", function(req, res){
                if (err) {
                    executeError(err, res);
                } else {
-                     result.rows.forEach(function(row, index, array){
-                           getImages(row).then(function(photoData){
-                               imageArr.push(photoData.imageObj);
-                               thumbArr.push(photoData.thumbObj);
+                         if(result.rows.length !== 0){
+                               result.rows.forEach(function(row, index, array){
+                                // console.log("ROW " + util.inspect(row, false, null));
 
-                               if(imageArr.length == result.rows.length){
-                                  //  console.log("seding back");
-                                   doRelease(connection);
-                                   res.send({
-                                     rows:result.rows,
-                                     images: imageArr,
-                                     thumbs: thumbArr
+                                   getImages(row).then(function(photoData){
+                                       imageArr.push(photoData.imageObj);
+                                       thumbArr.push(photoData.thumbObj);
+
+                                       if(imageArr.length == result.rows.length){
+                                          //  console.log("seding back");
+                                           doRelease(connection);
+                                           res.send({
+                                             rows:result.rows,
+                                             images: imageArr,
+                                             thumbs: thumbArr
+                                           });
+                                       }
                                    });
-                               }
+                              });
+                         }else{
+                           res.send({
+                             rows:result.rows,
+                             images: imageArr,
+                             thumbs: thumbArr
                            });
-                    });
+                       }
                 }
             }
         );
@@ -1076,41 +1126,8 @@ app.post("/getGroupPictures", function(req, res){
 
 // Get search results from only keywords
 app.post("/getKeyResults", function(req, res){
-    var DBQueryString =
-        "SELECT * " +
-        "FROM images " +
-        "WHERE ",
-        DBSearchString = "",
-        DBQueryParam = {userName: req.query.userName};
-
-    // If the user is not an admin, add on the permission restrictions
-    if (req.query.userName != "admin"){
-      DBQueryString = DBQueryString + "(images.permitted IN " +
-                                      "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
-                                      "OR images.permitted = 1 " +
-                                      "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
-                                      "AND ";
-    } else {
-      DBQueryParam = {};
-    };
-
-    // Add the bracket to the query for searching the keywords
-    DBQueryString = DBQueryString + "(";
-
-    var keywords = req.query.keywords
-    var index = 0
-    for (index; index < keywords.length; index++) {
-        key = keywords[index];
-        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.place LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' ";
-        if (index != 0) {
-          DBQueryString = DBQueryString + "OR" + DBSearchString
-        } else {
-          DBQueryString = DBQueryString + DBSearchString
-        }
-    }
-    DBQueryString = DBQueryString + ")"
-
-    // console.log(DBQueryString);
+    var DBQueryString = req.body.queryStr,
+        DBQueryParam = {};
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -1125,26 +1142,33 @@ app.post("/getKeyResults", function(req, res){
                if (err) {
                    executeError(err, res);
                } else {
-                //  console.log(util.inspect(result, false, null));
 
-                     result.rows.forEach(function(row, index, array){
-                      // console.log("ROW " + util.inspect(row, false, null));
+                    if(result.rows.length !== 0){
+                          result.rows.forEach(function(row, index, array){
+                           // console.log("ROW " + util.inspect(row, false, null));
 
-                         getImages(row).then(function(photoData){
-                             imageArr.push(photoData.imageObj);
-                             thumbArr.push(photoData.thumbObj);
+                              getSearchResults(row).then(function(photoData){
+                                  imageArr.push(photoData.imageObj);
+                                  thumbArr.push(photoData.thumbObj);
 
-                             if(imageArr.length == result.rows.length){
-                                //  console.log("seding back");
-                                 doRelease(connection);
-                                 res.send({
-                                   rows:result.rows,
-                                   images: imageArr,
-                                   thumbs: thumbArr
-                                 });
-                             }
+                                  if(imageArr.length == result.rows.length){
+                                     //  console.log("seding back");
+                                      doRelease(connection);
+                                      res.send({
+                                        rows:result.rows,
+                                        images: imageArr,
+                                        thumbs: thumbArr
+                                      });
+                                  }
+                              });
                          });
-                    });
+                    }else{
+                      res.send({
+                        rows:result.rows,
+                        images: imageArr,
+                        thumbs: thumbArr
+                      });
+                  }
                }
             }
         );
@@ -1187,22 +1211,32 @@ app.post("/getTimeResults", function(req, res){
                if (err) {
                    executeError(err, result);
                } else {
-                   result.rows.forEach(function(row, index, array){
-                       getImages(row).then(function(photoData){
-                           imageArr.push(photoData.imageObj);
-                           thumbArr.push(photoData.thumbObj);
+                     if(result.rows.length !== 0){
+                           result.rows.forEach(function(row, index, array){
+                            // console.log("ROW " + util.inspect(row, false, null));
 
-                           if(imageArr.length == result.rows.length){
-                              //  console.log("seding back");
-                               doRelease(connection);
-                               res.send({
-                                 rows:result.rows,
-                                 images: imageArr,
-                                 thumbs: thumbArr
+                               getImages(row).then(function(photoData){
+                                   imageArr.push(photoData.imageObj);
+                                   thumbArr.push(photoData.thumbObj);
+
+                                   if(imageArr.length == result.rows.length){
+                                      //  console.log("seding back");
+                                       doRelease(connection);
+                                       res.send({
+                                         rows:result.rows,
+                                         images: imageArr,
+                                         thumbs: thumbArr
+                                       });
+                                   }
                                });
-                           }
+                          });
+                     }else{
+                       res.send({
+                         rows:result.rows,
+                         images: imageArr,
+                         thumbs: thumbArr
                        });
-                  });
+                   }
                }
 
             }
@@ -1212,41 +1246,8 @@ app.post("/getTimeResults", function(req, res){
 
 // Get search results from both keywords and a timeframe
 app.post("/getKeyTimeResults", function(req, res){
-    var DBQueryString =
-        "SELECT * " +
-        "FROM images " +
-        "WHERE ",
-        DBSearchString = "",
-        DBQueryParam = {userName: req.query.userName, startDate: req.query.timeStart, endDate: req.query.timeEnd};
-
-    // If the user is not an admin, add on the permission restrictions
-    if (req.query.userName != "admin"){
-      DBQueryString = DBQueryString + "(images.permitted IN " +
-                                      "(SELECT group_id FROM group_lists WHERE group_lists.friend_id = :userName) " +
-                                      "OR images.permitted = 1 " +
-                                      "OR (images.permitted = 2 AND images.owner_name = :userName)) " +
-                                      "AND ";
-    } else {
-      DBQueryParam = {startDate: req.query.timeStart, endDate: req.query.timeEnd};
-    };
-
-    DBQueryString = DBQueryString + "(images.timing BETWEEN TO_DATE (:startDate, 'yyyy/mm/dd') AND TO_DATE (:endDate, 'yyyy/mm/dd'))" +
-                                    "AND (";
-
-    var keywords = req.query.keywords
-    var index = 0
-    for (index; index < keywords.length; index++) {
-        key = keywords[index];
-        DBSearchString = " images.subject LIKE '%" + key + "%' OR images.place LIKE '%" + key + "%' OR images.description LIKE '%" + key + "%' ";
-        if (index != 0) {
-          DBQueryString = DBQueryString + "OR" + DBSearchString
-        } else {
-          DBQueryString = DBQueryString + DBSearchString
-        }
-    }
-    DBQueryString = DBQueryString + ")"
-
-    // console.log(DBQueryString);
+    var DBQueryString =req.body.queryStr,
+        DBQueryParam = {};
 
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
@@ -1261,22 +1262,33 @@ app.post("/getKeyTimeResults", function(req, res){
                if (err) {
                    executeError(err, res);
                } else {
-                 result.rows.forEach(function(row, index, array){
-                    getImages(row).then(function(photoData){
-                           imageArr.push(photoData.imageObj);
-                           thumbArr.push(photoData.thumbObj);
+                //  console.log(util.inspect(result, false, null));
+                        if(result.rows.length !== 0){
+                              result.rows.forEach(function(row, index, array){
+                               // console.log("ROW " + util.inspect(row, false, null));
 
-                           if(imageArr.length == result.rows.length){
-                              //  console.log("seding back");
-                               doRelease(connection);
-                               res.send({
-                                 rows:result.rows,
-                                 images: imageArr,
-                                 thumbs: thumbArr
-                               });
-                           }
-                       });
-                  });
+                                  getSearchResults(row).then(function(photoData){
+                                      imageArr.push(photoData.imageObj);
+                                      thumbArr.push(photoData.thumbObj);
+
+                                      if(imageArr.length == result.rows.length){
+                                         //  console.log("seding back");
+                                          doRelease(connection);
+                                          res.send({
+                                            rows:result.rows,
+                                            images: imageArr,
+                                            thumbs: thumbArr
+                                          });
+                                      }
+                                  });
+                             });
+                        }else{
+                          res.send({
+                            rows:result.rows,
+                            images: imageArr,
+                            thumbs: thumbArr
+                          });
+                      }
                }
             }
         );
@@ -1401,8 +1413,8 @@ app.post("/analysis", function(req, res){
         DBQueryString += "GROUP BY CUBE(to_char(NEXT_DAY(timing, 'SAT'), 'YYYY-MM-DD'))";
     };
 
-    console.log(DBQueryString);
-    console.log(DBQueryParam);
+    // console.log(DBQueryString);
+    // console.log(DBQueryParam);
     oracledb.getConnection(dbConfig, function (err, connection) {
         if (err) {
             connectionError(err, res);

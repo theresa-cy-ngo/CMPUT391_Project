@@ -2,13 +2,12 @@ var SERVICE_BASE_URL = 'http://localhost:8080/';
 
 angular.module("myApp.search.searchHandler", [])
 .service("searchHandler", function($http, $q) {
-  this.getKeyResults = function (username, keywords, callback) {
-      console.log(keywords);
-      console.log(username);
+  this.getKeyResults = function (query, callback) {
+
       $http({
           url: SERVICE_BASE_URL + "getKeyResults",
           method: "POST",
-          params: {userName: username, "keywords[]": keywords}
+          data: {queryStr: query}
       })
       .then(function(result) {
           return callback(result);
@@ -32,11 +31,11 @@ angular.module("myApp.search.searchHandler", [])
       });
   };
 
-  this.getKeyTimeResults = function (username, keywords, timeStart, timeEnd, callback) {
+  this.getKeyTimeResults = function (query, callback) {
       $http({
           url: SERVICE_BASE_URL + "getKeyTimeResults",
           method: "POST",
-          params: {userName: username, "keywords[]": keywords, timeStart: timeStart, timeEnd: timeEnd}
+          data: {queryStr: query}
       })
       .then(function(result) {
           return callback(result);
